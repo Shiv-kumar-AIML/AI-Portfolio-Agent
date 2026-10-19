@@ -545,7 +545,26 @@ export function MiniOS({
     setWin((w) => (w === 'min' ? 'open' : w))
     if (!busy) onSend(q)
   }
-  const close = () => setWin('closing')
+  // Leave / red button / power: animate the window away if it's on screen, then end the
+  // conversation. With no window showing (minimised) there's no exit animation to wait for, so
+  // leave straight away — and a timer guarantees we never get stuck either way.
+  const left = useRef(false)
+  const leave = useMemo(
+    () => () => {
+      if (left.current) return
+      left.current = true
+      onClose()
+    },
+    [onClose]
+  )
+  const close = () => {
+    if (win === 'open' || win === 'max') {
+      setWin('closing')
+      setTimeout(leave, 600)
+    } else {
+      leave()
+    }
+  }
 
   const lastDeliveredAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && delivered.has(m.id))
 
@@ -646,7 +665,7 @@ export function MiniOS({
         </div>
 
         {/* the Messages window */}
-        <AnimatePresence custom={win} onExitComplete={() => win === 'closing' && onClose()}>
+        <AnimatePresence custom={win} onExitComplete={() => win === 'closing' && leave()}>
           {(win === 'open' || win === 'max') && (
             <motion.section
               key="messages"
