@@ -15,6 +15,9 @@ export default defineConfig({
     },
   },
   server: {
+    // Vite rejects unknown Host headers (DNS-rebinding protection). Allow ngrok tunnels so the dev
+    // site can be shared for a demo — only ngrok's domains, not every host.
+    allowedHosts: ['.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app', '.ngrok.dev'],
     proxy: {
       '/api': { target: apiTarget, changeOrigin: true },
     },

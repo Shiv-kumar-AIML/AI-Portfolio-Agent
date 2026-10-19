@@ -1,8 +1,26 @@
 import { motion } from 'motion/react'
+import { lazy, Suspense } from 'react'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { QuickActions } from '@/components/chat/QuickActions'
-import { Skeleton } from '@/components/ui/skeleton'
+import { FallbackBoundary } from '@/components/FallbackBoundary'
 import type { PublicProfile } from '@/types'
+
+// The voxel desk scene (three.js) loads in its own chunk. The download starts as soon as this
+// module loads (not when the hero first renders), and an empty box of the same size holds the
+// space until it is ready — no placeholder face flashing on every refresh.
+const deskSceneChunk = import('@/components/desk/DeskScene')
+const DeskScene = lazy(() => deskSceneChunk)
+const SCENE_BOX = 'aspect-[4/3] h-[clamp(11rem,46dvh,27rem)] max-w-[92vw]'
+
+const hasWebGL = () => {
+  try {
+    const c = document.createElement('canvas')
+    return !!(c.getContext('webgl2') || c.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+const canRender3D = typeof window !== 'undefined' && hasWebGL()
 
 /**
  * Two parts: the first screen is the introduction (greeting, title, avatar, input); scrolling down
@@ -44,15 +62,15 @@ export function Landing({
           transition={{ delay: 0.2, type: 'spring', stiffness: 120, damping: 16 }}
           className="mt-5 sm:mt-6"
         >
-          {profile ? (
-            <img
-              src={profile.avatar || '/avatar.svg'}
-              alt={profile.name}
-              className="avatar-float h-[clamp(10rem,44dvh,26rem)] w-auto object-contain drop-shadow-xl select-none"
-              draggable={false}
-            />
+          {canRender3D ? (
+            <FallbackBoundary fallback={<div className={SCENE_BOX} />}>
+              <Suspense fallback={<div className={SCENE_BOX} />}>
+                {/* "me at work": walks in, sits down, opens the laptop, keeps working */}
+                <DeskScene className={`${SCENE_BOX} animate-in fade-in duration-700`} />
+              </Suspense>
+            </FallbackBoundary>
           ) : (
-            <Skeleton className="h-[clamp(10rem,38dvh,22rem)] w-[clamp(9rem,34dvh,19rem)] rounded-full" />
+            <div className={SCENE_BOX} />
           )}
         </motion.div>
 
