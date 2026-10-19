@@ -17,36 +17,71 @@
     "Comfortable across the stack: Python/FastAPI, Node/TypeScript, React, Docker"
   ],
   "socials": {
-    "github": "https://github.com/your-github",
+    "github": "https://github.com/Shiv-kumar-AIML",
     "linkedin": "https://www.linkedin.com/in/your-linkedin",
     "x": "",
     "kaggle": "",
     "huggingface": "",
     "website": ""
   },
-  "githubUsername": "octocat",
+  "githubUsername": "Shiv-kumar-AIML",
   "resumeUrl": "/resume.pdf",
   "calendlyUrl": "",
   "skills": [
     {
       "category": "LLMs & Agents",
-      "items": ["Tool-calling agents", "RAG", "Prompt engineering", "LLM evaluation", "OpenAI / Groq / Anthropic APIs", "LangGraph"]
+      "items": [
+        "Tool-calling agents",
+        "RAG",
+        "Prompt engineering",
+        "LLM evaluation",
+        "OpenAI / Groq / Anthropic APIs",
+        "LangGraph"
+      ]
     },
     {
       "category": "Machine Learning",
-      "items": ["PyTorch", "scikit-learn", "Transformers", "Embeddings & vector search", "XGBoost", "Model fine-tuning"]
+      "items": [
+        "PyTorch",
+        "scikit-learn",
+        "Transformers",
+        "Embeddings & vector search",
+        "XGBoost",
+        "Model fine-tuning"
+      ]
     },
     {
       "category": "Backend",
-      "items": ["Python", "FastAPI", "Node.js", "Express", "TypeScript", "PostgreSQL", "pgvector", "Redis"]
+      "items": [
+        "Python",
+        "FastAPI",
+        "Node.js",
+        "Express",
+        "TypeScript",
+        "PostgreSQL",
+        "pgvector",
+        "Redis"
+      ]
     },
     {
       "category": "Frontend",
-      "items": ["React", "Vite", "Tailwind CSS", "shadcn/ui"]
+      "items": [
+        "React",
+        "Vite",
+        "Tailwind CSS",
+        "shadcn/ui"
+      ]
     },
     {
       "category": "MLOps & Infra",
-      "items": ["Docker", "docker-compose", "Nginx", "GitHub Actions", "Linux", "AWS"]
+      "items": [
+        "Docker",
+        "docker-compose",
+        "Nginx",
+        "GitHub Actions",
+        "Linux",
+        "AWS"
+      ]
     }
   ],
   "experience": [
@@ -62,7 +97,14 @@
         "Built the Python AI microservice behind an Express API gateway",
         "Added streaming responses, conversation memory and suggestion chips"
       ],
-      "stack": ["Python", "FastAPI", "OpenAI", "PostgreSQL", "Docker", "React"]
+      "stack": [
+        "Python",
+        "FastAPI",
+        "OpenAI",
+        "PostgreSQL",
+        "Docker",
+        "React"
+      ]
     },
     {
       "company": "Example Analytics Co.",
@@ -75,7 +117,12 @@
         "Improved forecast MAPE by 12% with gradient-boosted models and better features",
         "Packaged models as REST services with automated retraining"
       ],
-      "stack": ["Python", "scikit-learn", "XGBoost", "Airflow"]
+      "stack": [
+        "Python",
+        "scikit-learn",
+        "XGBoost",
+        "Airflow"
+      ]
     }
   ],
   "education": [
@@ -95,59 +142,362 @@
       "year": 2026,
       "featured": true,
       "status": "live",
-      "tags": ["LLM", "Agents", "RAG"],
-      "stack": ["FastAPI", "Groq", "fastembed", "Express", "React", "Docker"],
-      "metrics": [
-        { "label": "Tools", "value": "10" },
-        { "label": "Retrieval", "value": "BM25 + dense + RRF" }
+      "tags": [
+        "LLM",
+        "Agents",
+        "RAG"
       ],
-      "links": { "github": "https://github.com/your-github/portfolio", "demo": "" },
+      "stack": [
+        "FastAPI",
+        "Groq",
+        "fastembed",
+        "Express",
+        "React",
+        "Docker"
+      ],
+      "metrics": [
+        {
+          "label": "Tools",
+          "value": "11"
+        },
+        {
+          "label": "Retrieval",
+          "value": "BM25 + dense + RRF"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/AI-Portfolio-Agent",
+        "demo": ""
+      },
       "image": ""
     },
     {
-      "slug": "ai-business-assistant",
-      "title": "AI Business Assistant",
-      "tagline": "An in-app LLM agent that manages customers, quotes, invoices and scheduling.",
-      "year": 2025,
+      "slug": "pentas-agent",
+      "title": "Pentas-Agent — AI Security Scanner",
+      "tagline": "SAST/SCA scanner that reasons: rule-based scanning plus AI engines that trace dataflows, verify exploitability and remove false positives.",
+      "year": 2026,
       "featured": true,
-      "status": "production",
-      "tags": ["LLM", "Agents", "SaaS"],
-      "stack": ["Python", "FastAPI", "OpenAI", "PostgreSQL", "pgvector", "React"],
-      "metrics": [
-        { "label": "Tools", "value": "20+" },
-        { "label": "Users", "value": "Paying customers" }
+      "status": "open-source",
+      "tags": [
+        "AI Agents",
+        "Security",
+        "LLM"
       ],
-      "links": { "github": "", "demo": "" },
+      "stack": [
+        "Python",
+        "LLM reasoning",
+        "SAST",
+        "SCA"
+      ],
+      "metrics": [
+        {
+          "label": "True positives",
+          "value": "32/32"
+        },
+        {
+          "label": "Known critical vulns found",
+          "value": "11/11"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/SECURITY_ANALYSIS_AI_AGENT",
+        "demo": ""
+      },
       "image": ""
     },
     {
-      "slug": "doc-qa-rag",
-      "title": "Document Q&A with RAG",
-      "tagline": "Chat with PDFs using hybrid retrieval, re-ranking and cited answers.",
+      "slug": "dast-agent",
+      "title": "DAST-Agent",
+      "tagline": "Autonomous multi-agent dynamic application security testing (DAST) that works like a human pentester: observe, plan, exploit, verify.",
+      "year": 2026,
+      "featured": true,
+      "status": "open-source",
+      "tags": [
+        "Multi-Agent",
+        "Security",
+        "LLM"
+      ],
+      "stack": [
+        "Python",
+        "Playwright",
+        "LLM agents"
+      ],
+      "metrics": [
+        {
+          "label": "Specialised agents",
+          "value": "7"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/SECURITY-DAST-AGENT",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "security-vulnerability-agent",
+      "title": "Security Vulnerability Detection Agent",
+      "tagline": "CLI agent that scans codebases with SAST/SCA/DAST/container scanners and enriches findings with AI Red/Blue-team analysis.",
+      "year": 2026,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "AI Agents",
+        "Security"
+      ],
+      "stack": [
+        "Python",
+        "Semgrep",
+        "LLM"
+      ],
+      "metrics": [
+        {
+          "label": "Pipeline steps",
+          "value": "10"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/AI_Security_Agent",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "voice-ordering-agent",
+      "title": "B2B Voice Ordering Agent Backend",
+      "tagline": "FastAPI backend for conversational voice agents (Vapi): business lookup, fuzzy product search, validated carts and order placement.",
+      "year": 2026,
+      "featured": true,
+      "status": "open-source",
+      "tags": [
+        "Voice AI",
+        "Backend",
+        "LLM"
+      ],
+      "stack": [
+        "Python",
+        "FastAPI",
+        "Redis",
+        "SQLite",
+        "Vapi"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/Voice_agent_Backend--Fastapi---redis-",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "beru-agent",
+      "title": "BERU AI Assistant",
+      "tagline": "A fully local multi-agent AI assistant for files, coding, web operations and project scaffolding — runs on Ollama models, no paid APIs.",
+      "year": 2026,
+      "featured": true,
+      "status": "open-source",
+      "tags": [
+        "Multi-Agent",
+        "Local LLM"
+      ],
+      "stack": [
+        "Python",
+        "Ollama"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/BERU_AGENT",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "aureus-rag",
+      "title": "Aureus RAG",
+      "tagline": "RAG pipeline that ingests PDFs, chunks and classifies their content, and stores embeddings in Chroma for retrieval.",
+      "year": 2026,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "RAG",
+        "LLM"
+      ],
+      "stack": [
+        "Python",
+        "ChromaDB"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/aureus_rag",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "padel-game-analyzer",
+      "title": "Padel Game Analyzer",
+      "tagline": "AI padel match analysis with YOLO: real-time player tracking with stable IDs, ball-hit detection, court-coverage heatmaps and performance dashboards.",
+      "year": 2026,
+      "featured": true,
+      "status": "open-source",
+      "tags": [
+        "Computer Vision",
+        "Sports Analytics"
+      ],
+      "stack": [
+        "Python",
+        "YOLO (Ultralytics)",
+        "OpenCV"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/Paddle_Game_Analysis-yolo-models-",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "market-research-crew",
+      "title": "Market Research Crew",
+      "tagline": "Multi-agent market research system built on the CrewAI framework, where agents collaborate to research and write a report.",
+      "year": 2026,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "Multi-Agent",
+        "CrewAI"
+      ],
+      "stack": [
+        "Python",
+        "CrewAI",
+        "uv"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/market_research_agnet-using---CrewAI-Framework-",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "langgraph-ollama-chatbot",
+      "title": "LangGraph + Ollama Chatbot",
+      "tagline": "Terminal chatbot on LangGraph with a local Mistral model, persistent SQLite memory, SQL, web search, scraping and voice tools.",
+      "year": 2026,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "LangGraph",
+        "Agents",
+        "Local LLM"
+      ],
+      "stack": [
+        "Python",
+        "LangGraph",
+        "Ollama",
+        "SQLite"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/testing_repo",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "instagram-hashtag-analyzer",
+      "title": "Instagram Hashtag Analyzer",
+      "tagline": "Search Instagram hashtags and fetch recent posts with engagement metrics through the Instagram Graph API, with CSV export.",
+      "year": 2026,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "Data",
+        "API"
+      ],
+      "stack": [
+        "Python",
+        "Streamlit",
+        "Instagram Graph API",
+        "Pandas"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/Instagram-hashtag-get-info",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "accident-detection",
+      "title": "Real-Time Accident Detection",
+      "tagline": "CNN-based system that watches CCTV or uploaded video, detects road accidents and sends email/SMS alerts with the captured frame.",
       "year": 2025,
       "featured": true,
       "status": "open-source",
-      "tags": ["RAG", "NLP"],
-      "stack": ["Python", "sentence-transformers", "FAISS", "FastAPI"],
-      "metrics": [
-        { "label": "Recall@5", "value": "+18% vs dense-only" }
+      "tags": [
+        "Computer Vision",
+        "Deep Learning"
       ],
-      "links": { "github": "https://github.com/your-github/doc-qa-rag", "demo": "" },
+      "stack": [
+        "Python",
+        "PyTorch",
+        "OpenCV",
+        "Streamlit",
+        "Twilio"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/accident_detection_system",
+        "demo": ""
+      },
       "image": ""
     },
     {
-      "slug": "demand-forecasting",
-      "title": "Retail Demand Forecasting",
-      "tagline": "Gradient-boosted forecasting pipeline with automated retraining.",
-      "year": 2024,
+      "slug": "semantic-quote-rag",
+      "title": "Semantic Quote Retrieval (RAG)",
+      "tagline": "Search quotes by meaning: sentence-transformer embeddings in a FAISS index, with a RAG step that summarises themes, authors and tags.",
+      "year": 2025,
       "featured": false,
-      "status": "archived",
-      "tags": ["ML", "Time series"],
-      "stack": ["Python", "XGBoost", "pandas", "Airflow"],
-      "metrics": [
-        { "label": "MAPE", "value": "-12%" }
+      "status": "open-source",
+      "tags": [
+        "RAG",
+        "NLP"
       ],
-      "links": { "github": "", "demo": "" },
+      "stack": [
+        "Python",
+        "sentence-transformers",
+        "FAISS",
+        "Hugging Face"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/Semantic_Quote_using_RAG",
+        "demo": ""
+      },
+      "image": ""
+    },
+    {
+      "slug": "ticket-analyzer",
+      "title": "Support Ticket Analyzer",
+      "tagline": "ML tool that classifies support tickets by issue type and urgency and extracts products, complaints, order numbers and dates.",
+      "year": 2025,
+      "featured": false,
+      "status": "open-source",
+      "tags": [
+        "NLP",
+        "Machine Learning"
+      ],
+      "stack": [
+        "Python",
+        "scikit-learn",
+        "TF-IDF",
+        "Gradio"
+      ],
+      "metrics": [],
+      "links": {
+        "github": "https://github.com/Shiv-kumar-AIML/ticket-classifier",
+        "demo": ""
+      },
       "image": ""
     }
   ],

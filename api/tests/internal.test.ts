@@ -4,7 +4,7 @@ import { ADMIN_AUTH, INTERNAL_KEY, jsonResponse, prismaMock, resetPrismaMock } f
 jest.mock('../src/lib/prisma', () => ({ __esModule: true, default: prismaMock }));
 
 import app from '../src/index';
-import { resetGithubCache, summarize } from '../src/services/GithubService';
+import { listRepoFiles, resetGithubCache, summarize, summarizeLanguages } from '../src/services/GithubService';
 
 const fetchMock = jest.fn();
 const realFetch = global.fetch;
@@ -82,6 +82,91 @@ describe('GitHub summary', () => {
       { name: 'TypeScript', repos: 1 },
     ]);
     expect(s.recentRepos.map((r) => r.name)).toEqual(['b', 'a', 'c']);
+  });
+});
+
+describe('GET /internal/github/repos/:name', () => {
+  const repoDetail = {
+    name: 'a',
+    html_url: 'u/a',
+    description: 'Repo A',
+    homepage: '',
+    topics: ['rag'],
+    stargazers_count: 5,
+    forks_count: 1,
+    default_branch: 'main',
+    created_at: '2025-01-01T00:00:00Z',
+    pushed_at: '2026-01-02T00:00:00Z',
+  };
+  const routeGithub = (url: string) => {
+    if (url.endsWith('/users/octocat')) return jsonResponse(githubUser);
+    if (url.includes('/users/octocat/repos')) return jsonResponse(githubRepos);
+    if (url.endsWith('/repos/octocat/a')) return jsonResponse(repoDetail);
+    if (url.endsWith('/languages')) return jsonResponse({ Python: 750, Shell: 250 });
+    if (url.endsWith('/readme')) return new Response('# Repo A\nHybrid RAG.', { status: 200 });
+    if (url.includes('/git/trees/main')) {
+      return jsonResponse({
+        tree: [
+          { path: 'app/main.py', type: 'blob' },
+          { path: 'README.md', type: 'blob' },
+          { path: 'node_modules/x/index.js', type: 'blob' },
+          { path: 'app', type: 'tree' },
+        ],
+      });
+    }
+    return jsonResponse({ message: 'not found' }, 404);
+  };
+
+  it('needs the internal service key', async () => {
+    expect((await request(app).get('/internal/github/repos/a')).status).toBe(401);
+  });
+
+  it('returns README, languages and files for an own repo (name matched case-insensitively)', async () => {
+    fetchMock.mockImplementation(async (url: string) => routeGithub(url));
+    const res = await request(app).get('/internal/github/repos/A').set(INTERNAL_KEY);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      name: 'a',
+      readme: '# Repo A\nHybrid RAG.',
+      languages: [
+        { name: 'Python', percent: 75 },
+        { name: 'Shell', percent: 25 },
+      ],
+      files: ['README.md', 'app/main.py'],
+      totalFiles: 2,
+    });
+  });
+
+  it('404s with the list of real repos for an unknown or forked repo', async () => {
+    fetchMock.mockImplementation(async (url: string) => routeGithub(url));
+    const res = await request(app).get('/internal/github/repos/forked').set(INTERNAL_KEY);
+    expect(res.status).toBe(404);
+    expect(res.body.available).toEqual(['a', 'b', 'c']);
+  });
+
+  it('rejects names that are not valid repo names', async () => {
+    const res = await request(app).get('/internal/github/repos/a%2F..%2Fsecrets').set(INTERNAL_KEY);
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('repo helpers', () => {
+  it('drops noise paths and lists shallow files first', () => {
+    const { files, totalFiles } = listRepoFiles([
+      { path: 'src/deep/a.ts', type: 'blob' },
+      { path: '__pycache__/x.pyc', type: 'blob' },
+      { path: 'package.json', type: 'blob' },
+    ]);
+    expect(files).toEqual(['package.json', 'src/deep/a.ts']);
+    expect(totalFiles).toBe(2);
+  });
+
+  it('turns language bytes into percentages', () => {
+    expect(summarizeLanguages({ TypeScript: 1, CSS: 3 })).toEqual([
+      { name: 'CSS', percent: 75 },
+      { name: 'TypeScript', percent: 25 },
+    ]);
   });
 });
 

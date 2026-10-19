@@ -32,8 +32,9 @@ chunks it used.
 
 ## Agent
 
-The model can call ten tools — knowledge search, profile, projects, project details, skills,
-experience, resume, GitHub activity, contact info, and sending me a message. Read tools run in
+The model can call eleven tools — knowledge search, profile, projects, project details, skills,
+experience, resume, GitHub activity, reading any of my GitHub repos in depth (README, files,
+languages), contact info, and sending me a message. Read tools run in
 parallel; the one write tool (sending a message) runs alone and only with details the visitor
 typed. Each reply ends with suggested follow-up questions.
 

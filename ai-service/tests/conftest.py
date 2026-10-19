@@ -5,6 +5,8 @@ os.environ.setdefault("ENVIRONMENT", "test")
 os.environ["EMBEDDINGS_ENABLED"] = "false"  # tests never download the embedding model
 os.environ["INTERNAL_SERVICE_KEY"] = "test-internal-key-0123456789abcdef"
 os.environ["GROQ_API_KEY"] = "test-groq-key"
+# A fixed copy of the content, so editing the real profile never breaks the tests.
+os.environ["CONTENT_DIR"] = os.path.join(os.path.dirname(__file__), "fixtures", "content")
 
 from collections.abc import AsyncIterator, Iterator  # noqa: E402
 from types import SimpleNamespace  # noqa: E402

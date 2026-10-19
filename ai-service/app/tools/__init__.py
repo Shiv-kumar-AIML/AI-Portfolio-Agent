@@ -13,6 +13,7 @@ from app.tools.profile_tools import (
     GetSkillsTool,
 )
 from app.tools.project_tools import GetProjectDetailsTool, GetProjectsTool
+from app.tools.repo_tools import GetRepoDetailsTool
 
 TOOL_CLASSES: tuple[type[BaseTool], ...] = (
     SearchKnowledgeTool,
@@ -24,6 +25,7 @@ TOOL_CLASSES: tuple[type[BaseTool], ...] = (
     GetResumeTool,
     GetContactTool,
     GetGithubActivityTool,
+    GetRepoDetailsTool,
     SendMessageTool,
 )
 

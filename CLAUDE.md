@@ -8,6 +8,8 @@ the architecture.
 - `content/profile.json` and `content/knowledge/**/*.md` are the single source of truth for facts
   about the owner. Both the api and the ai-service read them. Never hardcode facts about the owner in
   code or prompts.
+- Tests never read the real `content/`: api and ai-service tests use their own copy in
+  `tests/fixtures/content/`, so editing the profile can't break them.
 - A project deep-dive is `content/knowledge/projects/<slug>.md` with `project: <slug>` in its
   frontmatter, and the slug must match `profile.json`.
 

@@ -27,8 +27,10 @@ and the Python/TypeScript services around them.
 
 ## Do you have production experience?
 
-Yes — see the "AI Business Assistant" project: an agent used daily by paying customers, built as
-a Python microservice behind a Node API gateway, deployed with Docker and CI-gated releases.
+Yes. Pentas-Agent, my AI security scanner, was benchmarked on a real production Next.js/TypeScript
+codebase (20,834 lines, 107 files): all 32 findings were real and it caught 11 of 11 known critical
+vulnerabilities. The B2B Voice Ordering Agent backend is built for live voice agents (Vapi) with
+strict validation, and this portfolio runs as Dockerised microservices with CI-gated tests.
 
 ## How do I contact you?
 
