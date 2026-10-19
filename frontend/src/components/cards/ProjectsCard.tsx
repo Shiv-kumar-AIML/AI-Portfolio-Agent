@@ -65,7 +65,7 @@ export function ProjectsCard({ data }: { data: { projects: Project[] } }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
           onClick={() => ask(`Tell me more about the ${project.title} project`)}
-          className="group flex flex-col gap-3 rounded-xl border bg-card p-4 text-left ring-1 ring-foreground/5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 disabled:pointer-events-none"
+          className="vx-sm vx-press group flex flex-col gap-3 bg-card p-4 text-left disabled:pointer-events-none"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

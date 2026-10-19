@@ -41,7 +41,7 @@ export function TopBar({
           onClick={onContact}
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur transition-shadow hover:shadow-md sm:px-4 sm:py-2 sm:text-sm"
+          className="vx-sm inline-flex items-center gap-2 bg-card px-3 py-1.5 font-pixel text-xs font-medium sm:px-4 sm:py-2 sm:text-sm"
         >
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500/60" />
@@ -73,7 +73,7 @@ export function TopBar({
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex size-12 items-center justify-center rounded-2xl border bg-background font-heading text-lg font-bold tracking-tight shadow-md sm:size-14 sm:text-xl"
+              className="vx flex size-12 items-center justify-center bg-wood font-pixel text-lg font-bold tracking-wide text-white sm:size-14 sm:text-xl"
               aria-label={profile?.name}
             >
               {profile ? initials(profile.name) : ''}
@@ -86,7 +86,7 @@ export function TopBar({
         {!inChat ? (
           <LocalTimePill profile={profile} />
         ) : (
-        <div className="flex items-center gap-0.5 rounded-full border bg-background/80 p-0.5 shadow-sm backdrop-blur">
+        <div className="vx-sm flex items-center gap-0.5 bg-card p-0.5">
           {inChat && (
             <Tooltip>
               <TooltipTrigger

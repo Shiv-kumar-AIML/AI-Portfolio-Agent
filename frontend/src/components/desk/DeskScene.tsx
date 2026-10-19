@@ -1,8 +1,10 @@
 import { ContactShadows } from '@react-three/drei'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import * as THREE from 'three'
 import { useTheme } from '@/components/theme'
+import { deskSignals, POV_MIN_WIDTH, setScreenQuad, type Pt } from './signals'
 
 /**
  * The hero scene on the landing page, in a voxel style: a desk in the middle; a little voxel
@@ -48,7 +50,7 @@ const lerp = THREE.MathUtils.lerp
 const CHAIR_TUCKED_Z = -0.3
 const CHAIR_OUT_Z = -0.62
 const SEATED_Z = -0.52
-const START = { x: -2.6, z: -0.75 }
+const START = { x: -4.4, z: -0.75 }
 const BEHIND_CHAIR = { x: 0, z: -0.75 }
 const PULLED_BACK_Z = -1.07
 const SIDE_OF_CHAIR = { x: -0.52, z: -0.6 }
@@ -106,7 +108,17 @@ function useCodeScreen() {
     const lines = Array.from({ length: 12 }, makeLine)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
-    const draw = (cursorOn: boolean) => {
+    // the screen box's visible face maps the canvas rotated 180°, so every draw is pre-rotated
+    const upright = (paint: () => void) => {
+      g.save()
+      g.translate(canvas.width, canvas.height)
+      g.rotate(Math.PI)
+      paint()
+      g.restore()
+      texture.needsUpdate = true
+    }
+    const draw = (cursorOn: boolean) => upright(() => paintCode(cursorOn))
+    const paintCode = (cursorOn: boolean) => {
       g.fillStyle = '#141a26'
       g.fillRect(0, 0, canvas.width, canvas.height)
       g.fillStyle = '#1d2535'
@@ -128,11 +140,40 @@ function useCodeScreen() {
         g.fillStyle = '#ffffff'
         g.fillRect(Math.min(x, 240), 10 + (lines.length - 1) * 13 - 1, 3, 9)
       }
-      texture.needsUpdate = true
+    }
+    // The mini-OS desktop, drawn on the screen as the camera dives in (same palette as MiniOS)
+    const desktop = (dark: boolean) => upright(() => paintDesktop(dark))
+    const paintDesktop = (dark: boolean) => {
+      const grad = g.createLinearGradient(0, 0, 0, canvas.height)
+      const stops = dark ? ['#0d1024', '#1b1e3a', '#2f2346'] : ['#bfe3e6', '#e6eedd', '#f6eee2', '#f3d2b0']
+      stops.forEach((c, i) => grad.addColorStop(i / (stops.length - 1), c))
+      g.fillStyle = grad
+      g.fillRect(0, 0, canvas.width, canvas.height)
+      g.fillStyle = dark ? 'rgba(15,18,32,0.7)' : 'rgba(255,255,255,0.6)'
+      g.fillRect(0, 0, canvas.width, 9)
+      // the Messages window
+      g.fillStyle = dark ? '#11132a' : '#f6eee2'
+      g.beginPath()
+      g.roundRect(48, 22, 160, 118, 3)
+      g.fill()
+      g.fillStyle = dark ? '#e39a62' : '#d9874c' // the wood title bar
+      g.fillRect(48, 22, 160, 12)
+      ;['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
+        g.fillStyle = c
+        g.beginPath()
+        g.arc(56 + i * 7, 28, 2, 0, Math.PI * 2)
+        g.fill()
+      })
+      // dock
+      g.fillStyle = dark ? 'rgba(30,34,48,0.75)' : 'rgba(255,255,255,0.55)'
+      g.beginPath()
+      g.roundRect(88, 150, 80, 13, 4)
+      g.fill()
     }
     draw(true)
     return {
       texture,
+      desktop,
       step: (cursorOn: boolean) => {
         lines.shift()
         lines.push(makeLine())
@@ -162,11 +203,48 @@ type Rig = {
   screen: THREE.Mesh | null
 }
 
-function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObject<number> }) {
+export type Focus = { target: 0 | 1; instant: boolean; onArrive: (to: 0 | 1) => void }
+
+// Camera: home framing, and the orbit that swings round to come over the character's shoulder.
+const CAM_HOME = new THREE.Vector3(2.1, 1.9, 2.9)
+const LOOK_HOME = new THREE.Vector3(-0.15, 0.55, -0.3)
+const ORBIT_SIDE = new THREE.Vector3(2.3, 1.75, 0.0)
+const ORBIT_BEHIND = new THREE.Vector3(0.95, 1.4, -1.55)
+const POV_FOV = 42 // a wider lens at his eyes: screen, keyboard and hands all in view
+// the visible face of the screen box (it faces local -y)
+const SCREEN_CORNERS = [
+  new THREE.Vector3(-0.5, -0.5, -0.5),
+  new THREE.Vector3(0.5, -0.5, -0.5),
+  new THREE.Vector3(0.5, -0.5, 0.5),
+  new THREE.Vector3(-0.5, -0.5, 0.5),
+]
+const DIVE_IN = 1.9 // seconds
+const DIVE_OUT = 1.5
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
+
+function Scene({
+  hovered,
+  night,
+  focus,
+  frame,
+}: {
+  hovered: RefObject<boolean>
+  night: RefObject<number>
+  focus: RefObject<Focus>
+  /** where on the page the scene is framed (the hero holder) */
+  frame: RefObject<HTMLDivElement | null>
+}) {
   const mat = useMaterials()
   const screen = useCodeScreen()
   const screenMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#000000', emissive: '#ffffff', emissiveMap: screen.texture, emissiveIntensity: 0 }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#000000',
+        emissive: '#ffffff',
+        emissiveMap: screen.texture,
+        emissiveIntensity: 0,
+        toneMapped: false, // true colours, so the screen matches the mini-OS it hands over to
+      }),
     [screen]
   )
   const rig = useRef<Rig>({
@@ -202,13 +280,45 @@ function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObje
     codeIn: 0.4,
     cursorIn: 0.5,
     cursor: true,
+    camP: focus.current.instant && focus.current.target ? 1 : 0, // 0 = home framing, 1 = at the screen
+    camAt: (focus.current.instant ? focus.current.target : 0) as 0 | 1 | null, // last arrival reported
+    screenMode: 'code' as 'code' | 'desktop',
+    typeBoost: 0,
+    povReach: 0,
+    typePhase: 0,
   })
 
   const tmp = useMemo(() => new THREE.Vector3(), [])
   const glow = useRef<THREE.PointLight>(null)
 
+  const camPath = useMemo(() => new THREE.CatmullRomCurve3([CAM_HOME.clone(), ORBIT_SIDE, ORBIT_BEHIND, new THREE.Vector3()]), [])
+  const screenPos = useMemo(() => new THREE.Vector3(), [])
+  const screenNormal = useMemo(() => new THREE.Vector3(), [])
+  const eyePos = useMemo(() => new THREE.Vector3(), [])
+  const toEye = useMemo(() => new THREE.Vector3(), [])
+  const screenLook = useMemo(() => new THREE.Vector3(), [])
+  const corner = useMemo(() => new THREE.Vector3(), [])
+  const headPos = useMemo(() => new THREE.Vector3(), [])
+  const quat = useMemo(() => new THREE.Quaternion(), [])
+  const look = useMemo(() => new THREE.Vector3(), [])
+  const { camera, size } = useThree()
+  const isDark = useRef(false)
+  isDark.current = useTheme().resolvedTheme === 'dark'
+
+  // A question was asked before the character got to the desk: skip straight to working.
+  const skipToWork = () => {
+    const s = st.current
+    Object.assign(s, {
+      phase: 'work', t: 0, x: 0, z: SEATED_Z, y: SEATED_Y, rotY: 0, walking: 0, sit: 1,
+      chairZ: SEATED_Z, bagT: 1, lid: 1, screenOn: 1,
+    })
+  }
+
   useFrame((_, raw) => {
     const dt = Math.min(raw, 1 / 30)
+    const f = focus.current
+    const pov = size.width >= POV_MIN_WIDTH
+    if (f.target === 1 && st.current.phase !== 'work') skipToWork()
     const s = st.current
     const r = rig.current
     s.t += dt
@@ -235,7 +345,7 @@ function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObje
     // -------- story --------
     switch (s.phase) {
       case 'walk':
-        if (walkTo(BEHIND_CHAIR.x, BEHIND_CHAIR.z, 0.95)) go('turn')
+        if (walkTo(BEHIND_CHAIR.x, BEHIND_CHAIR.z, s.x < -2.2 ? 1.7 : 0.95)) go('turn') // hurries in, slows near the desk
         break
       case 'turn':
         targetRot = 0
@@ -335,14 +445,21 @@ function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObje
     legPose(r.thighR, r.shinR, Math.PI)
 
     // arms: swing → reach forward (chair / lid) → on the keyboard, typing
-    const typeL = Math.sin(s.clock * 17) * 0.07 * s.type
-    const typeR = Math.sin(s.clock * 17 + 1.7) * 0.07 * s.type
+    // typing on the keyboard — faster and bigger while a reply is being typed into the OS
+    s.typeBoost = damp(s.typeBoost, deskSignals.typing ? 1 : 0, 8, dt)
+    s.typePhase += dt * (17 + 13 * s.typeBoost)
+    const typeAmp = (0.07 + 0.06 * s.typeBoost) * s.type
+    const typeL = Math.sin(s.typePhase) * typeAmp
+    const typeR = Math.sin(s.typePhase * 1.13 + 1.7) * typeAmp
+    // seen from his eyes, the hands sit up on the keys (in view) rather than at the desk edge
+    s.povReach = damp(s.povReach, s.camP > 0.6 && size.width >= POV_MIN_WIDTH ? 1 : 0, 4, dt)
+    const reachUp = 0.24 * s.povReach
     if (r.armL) {
-      r.armL.rotation.x = -sw * 0.6 * s.walking - 1.25 * s.reach * (s.phase === 'open' ? 0 : 1) - 1.12 * s.type + typeL
+      r.armL.rotation.x = -reachUp - sw * 0.6 * s.walking - 1.25 * s.reach * (s.phase === 'open' ? 0 : 1) - 1.12 * s.type + typeL
       r.armL.rotation.z = -0.06 - 0.12 * s.type
     }
     if (r.armR) {
-      r.armR.rotation.x = sw * 0.6 * s.walking - 1.25 * s.reach - 1.12 * s.type + typeR
+      r.armR.rotation.x = -reachUp + sw * 0.6 * s.walking - 1.25 * s.reach - 1.12 * s.type + typeR
       r.armR.rotation.z = 0.06 + 0.12 * s.type
     }
 
@@ -364,11 +481,112 @@ function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObje
 
     // chair, lid, screen
     if (r.chair) r.chair.position.z = s.chairZ
+
+    // -------- camera: orbit round and dive into the laptop screen (and back out) --------
+    const goal = f.target
+    // camera time follows the wall clock (not the per-frame clamp used for the character), so the
+    // flight takes the same time on a slow device — fewer frames, not slow motion
+    const camDt = Math.min(raw, 0.25)
+    if (f.instant) s.camP = goal
+    else s.camP = clamp01(s.camP + (goal ? camDt / DIVE_IN : -camDt / DIVE_OUT))
+    if (s.camP === goal && s.camAt !== goal) {
+      s.camAt = goal
+      f.onArrive(goal)
+    } else if (s.camP !== goal) {
+      s.camAt = null
+    }
+    const e = easeInOutCubic(s.camP)
+    if (r.screen && (s.camP > 0 || goal)) {
+      r.screen.updateWorldMatrix(true, false)
+      r.screen.getWorldPosition(screenPos)
+      r.screen.getWorldQuaternion(quat)
+      screenNormal.set(0, -1, 0).applyQuaternion(quat) // the screen faces its local -y
+      if (pov && r.head) {
+        // end at the character's eyes, leaning in: the screen fills most of the view and the
+        // keyboard, his hands and the desk stay in frame around it — his point of view
+        // straight on (no sideways yaw), between the screen's normal and his eye line, so the
+        // screen reads square-ish but we still look down a little at the keyboard and hands
+        r.head.localToWorld(eyePos.set(0, 0.22, 0.12))
+        toEye.copy(eyePos).sub(screenPos).normalize().multiplyScalar(0.35).add(screenNormal).setX(0).normalize()
+        const t = Math.tan(THREE.MathUtils.degToRad(POV_FOV / 2))
+        // the screen fills ~98% of the view (readable), with just a hairline of bezel around it
+        const d = Math.max(0.26 / 0.98 / 2 / t, 0.4 / 0.99 / 2 / (t * (size.width / size.height)))
+        camPath.points[3].copy(screenPos).addScaledVector(toEye, d)
+        screenLook.copy(screenPos) // dead centre
+      } else {
+        camPath.points[3].copy(screenPos).addScaledVector(screenNormal, 0.36)
+        screenLook.copy(screenPos)
+      }
+      camera.position.copy(camPath.getPointAt(e))
+      look.lerpVectors(LOOK_HOME, screenLook, easeInOutCubic(clamp01(s.camP * 1.25)))
+      camera.lookAt(look)
+    } else {
+      camera.position.copy(CAM_HOME)
+      camera.lookAt(LOOK_HOME)
+    }
+    // lens shift: frame the scene inside the hero holder, widening to the full viewport on the dive
+    const cam = camera as THREE.PerspectiveCamera
+    const box = frame.current?.getBoundingClientRect()
+    if (box && box.width > 0 && box.height > 0) {
+      const g = easeInOutCubic(clamp01(s.camP * 1.6)) // the frame fills the screen early in the flight
+      const fx = lerp(box.left, 0, g)
+      const fy = lerp(box.top, 0, g)
+      const fw = lerp(box.width, size.width, g)
+      const fh = lerp(box.height, size.height, g)
+      cam.aspect = fw / fh
+      cam.fov = lerp(30, pov ? POV_FOV : 30, e)
+      cam.setViewOffset(fw, fh, -fx, -fy, size.width, size.height)
+    }
+
+    // at his eyes: tell the OS overlay exactly where the screen is on the page
+    if (pov && s.camP === 1 && r.screen) {
+      camera.updateMatrixWorld()
+      const pts: Pt[] = SCREEN_CORNERS.map((c) => {
+        r.screen!.localToWorld(corner.copy(c)).project(camera)
+        return { x: ((corner.x + 1) / 2) * size.width, y: ((1 - corner.y) / 2) * size.height }
+      })
+      pts.sort((a, b) => a.y - b.y)
+      const [t1, t2, b1, b2] = pts
+      const [tl, tr] = t1.x < t2.x ? [t1, t2] : [t2, t1]
+      const [bl, br] = b1.x < b2.x ? [b1, b2] : [b2, b1]
+      setScreenQuad({ tl, tr, br, bl })
+    } else if (s.camP < 1) {
+      setScreenQuad(null)
+    }
+
+    // the screen shows the mini-OS desktop as we arrive, the code editor otherwise
+    const wantMode = goal || s.camP > 0.4 ? 'desktop' : 'code'
+    if (wantMode !== s.screenMode) {
+      s.screenMode = wantMode
+      if (wantMode === 'desktop') screen.desktop(isDark.current)
+      else screen.step(s.cursor)
+    }
+    // as the camera comes over the shoulder, the character gets out of the shot — at his eyes only
+    // the head goes (we are looking out of it); his arms and hands stay on the keyboard
+    if (r.root && r.head) {
+      r.head.getWorldPosition(headPos)
+      if (pov) {
+        // he stays whole while the camera flies round him; only when the camera is right at his
+        // head (passing over the shoulder into his eyes) do the head and upper body step aside, so
+        // we never see a headless body — just his view
+        const near = camera.position.distanceTo(headPos) < 0.42
+        r.root.visible = true
+        r.head.visible = !near
+        if (r.body) for (const part of r.body.children) if (part !== r.armL && part !== r.armR) part.visible = !near
+        // the sleeves would fill the bottom corners from this close — only forearms and hands show
+        for (const arm of [r.armL, r.armR]) if (arm?.children[0]) arm.children[0].visible = !near
+      } else {
+        r.head.visible = true
+        if (r.body) for (const part of r.body.children) part.visible = true
+        for (const arm of [r.armL, r.armR]) if (arm?.children[0]) arm.children[0].visible = true
+        r.root.visible = s.camP < 0.02 || camera.position.distanceTo(headPos) > 0.55
+      }
+    }
     if (r.lid) r.lid.rotation.x = s.lid * 1.85
-    screenMat.emissiveIntensity = s.screenOn * 1.15
+    screenMat.emissiveIntensity = s.screenOn * (s.screenMode === 'desktop' ? 1 : 1.15)
     // the screen lights up the face — barely by day, clearly at night
     if (glow.current) glow.current.intensity = s.screenOn * (0.15 + 1.6 * night.current)
-    if (s.phase === 'work') {
+    if (s.phase === 'work' && s.screenMode === 'code') {
       s.codeIn -= dt
       s.cursorIn -= dt
       if (s.cursorIn <= 0) {
@@ -598,30 +816,60 @@ function Lights({ night, dark }: { night: RefObject<number>; dark: RefObject<boo
   )
 }
 
-export default function DeskScene({ className }: { className?: string }) {
+export default function DeskScene({
+  className,
+  focused = false,
+  instant = false,
+  paused = false,
+  onArrive,
+}: {
+  className?: string
+  focused?: boolean
+  /** jump straight to the focused framing (a reload that restores a conversation) */
+  instant?: boolean
+  /** stop rendering (e.g. while the mini-OS overlay covers the whole scene) */
+  paused?: boolean
+  onArrive?: (to: 0 | 1) => void
+}) {
   const { resolvedTheme } = useTheme()
   const dark = useRef(resolvedTheme === 'dark')
   dark.current = resolvedTheme === 'dark'
   const night = useRef(dark.current ? 1 : 0)
   const hovered = useRef(false)
+  const focus = useRef<Focus>({ target: focused ? 1 : 0, instant, onArrive: () => {} })
+  focus.current.target = focused ? 1 : 0
+  focus.current.instant = instant
+  focus.current.onArrive = (to) => onArrive?.(to)
+
+  // The canvas always covers the whole viewport, behind the page (portalled to <body>, so no
+  // ancestor transform or opacity can affect it). The holder is just the spot in the hero where
+  // the scene should appear: each frame the camera's lens is shifted (setViewOffset) so the scene
+  // is framed exactly inside it — and during the dive that frame widens to the full screen.
+  // There are no box edges anywhere, so nothing is ever cut off.
+  const holder = useRef<HTMLDivElement>(null)
+
   return (
     <div
+      ref={holder}
       className={className}
       onPointerEnter={() => (hovered.current = true)}
       onPointerLeave={() => (hovered.current = false)}
-      // soft edges, so the character walks in out of nowhere instead of from a hard border
-      style={{ maskImage: 'linear-gradient(to right, transparent 0%, #000 18%, #000 92%, transparent 100%)' }}
     >
-      <Canvas
-        shadows={{ type: THREE.PCFShadowMap }}
-        dpr={[1, 1.75]}
-        camera={{ position: [2.1, 1.9, 2.9], fov: 30, near: 0.1, far: 50 }}
-        gl={{ antialias: true, alpha: true }}
-        onCreated={({ camera }) => camera.lookAt(-0.15, 0.55, -0.3)}
-      >
-        <Lights night={night} dark={dark} />
-        <Scene hovered={hovered} night={night} />
-      </Canvas>
+      {createPortal(
+        <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: -5, pointerEvents: 'none' }}>
+          <Canvas
+            shadows={{ type: THREE.PCFShadowMap }}
+            dpr={[1, 1.5]}
+            frameloop={paused ? 'never' : 'always'}
+            camera={{ position: [2.1, 1.9, 2.9], fov: 30, near: 0.1, far: 50 }}
+            gl={{ antialias: true, alpha: true }}
+          >
+            <Lights night={night} dark={dark} />
+            <Scene hovered={hovered} night={night} focus={focus} frame={holder} />
+          </Canvas>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

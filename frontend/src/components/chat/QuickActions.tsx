@@ -37,12 +37,13 @@ export function QuickActions({
           initial={variant === 'grid' ? { opacity: 0, y: 8 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 + i * 0.04 }}
+          whileHover={{ y: -2 }}
+          whileTap={{ y: 3 }}
           className={cn(
-            'shrink-0 border border-border/70 bg-background/70 font-medium backdrop-blur-md transition-all duration-200',
-            'hover:-translate-y-0.5 hover:border-border hover:bg-background hover:shadow-lg hover:shadow-black/5 disabled:pointer-events-none disabled:opacity-50',
+            'vx-sm vx-press shrink-0 bg-card font-pixel font-medium disabled:pointer-events-none disabled:opacity-50',
             variant === 'grid'
-              ? 'flex h-20 w-[104px] flex-col items-center justify-center gap-2 rounded-2xl text-[13px] shadow-sm shadow-black/[0.03] sm:h-[84px] sm:w-[120px] sm:text-sm'
-              : 'inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-xs shadow-sm sm:h-11 sm:gap-2 sm:text-sm'
+              ? 'flex h-20 w-[104px] flex-col items-center justify-center gap-2 text-[14px] sm:h-[84px] sm:w-[120px] sm:text-[15px]'
+              : 'inline-flex h-10 items-center gap-1.5 px-3 text-xs sm:h-11 sm:gap-2 sm:text-sm'
           )}
         >
           <Icon className={cn(variant === 'grid' ? 'size-5' : 'size-4', tint)} />

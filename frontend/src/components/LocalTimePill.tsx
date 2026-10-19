@@ -20,7 +20,7 @@ export function vibeAt(hour: number): Vibe {
   return { icon: '🌙', text: 'late-night coding 🌙', night: true }
 }
 
-function useClock(timeZone: string | undefined) {
+export function useClock(timeZone: string | undefined) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     // tick on the minute boundary, then every minute
@@ -58,7 +58,7 @@ export function LocalTimePill({ profile }: { profile: PublicProfile | null }) {
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       title={city ? `My local time in ${city}` : 'My local time'}
-      className="inline-flex h-9 items-center gap-2 rounded-full border bg-background/80 px-3 text-xs font-medium shadow-sm backdrop-blur sm:h-10 sm:px-4 sm:text-sm"
+      className="vx-sm inline-flex h-9 items-center gap-2 bg-card px-3 font-pixel text-xs font-medium sm:h-10 sm:px-4 sm:text-sm"
     >
       <span aria-hidden="true">{vibe.icon}</span>
       {city && <span className="hidden text-muted-foreground lg:inline">{city} ·</span>}

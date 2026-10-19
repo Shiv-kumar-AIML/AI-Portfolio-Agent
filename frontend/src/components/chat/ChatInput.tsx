@@ -49,8 +49,8 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
         submit()
       }}
       className={cn(
-        'group relative flex items-end gap-2 rounded-[28px] border bg-background/85 py-2 pr-2 pl-3 shadow-lg shadow-black/5 backdrop-blur-xl transition-shadow',
-        'focus-within:border-blue-500/40 focus-within:ring-4 focus-within:ring-blue-500/10 dark:shadow-black/30',
+        'vx group relative flex items-end gap-2 bg-card py-2 pr-2 pl-3 transition-shadow',
+        'focus-within:ring-4 focus-within:ring-teal/25',
         size === 'lg' && 'py-2.5 pr-2.5 pl-4'
       )}
     >
@@ -82,7 +82,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
         </span>
       )}
       {busy ? (
-        <Button type="button" size="icon-lg" variant="secondary" onClick={onStop} aria-label="Stop generating" className="size-10 rounded-full">
+        <Button type="button" size="icon-lg" variant="secondary" onClick={onStop} aria-label="Stop generating" className="vx-sm vx-press size-10 rounded-md">
           <Square className="fill-current" />
         </Button>
       ) : (
@@ -91,7 +91,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           size="icon-lg"
           disabled={!value.trim() || tooLong}
           aria-label="Send"
-          className="size-10 rounded-full bg-blue-500 text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:opacity-100 dark:bg-blue-500 dark:hover:bg-blue-400"
+          className="vx-sm vx-press size-10 rounded-md bg-teal text-white hover:bg-teal disabled:opacity-60 dark:text-[#0d1024]"
         >
           <ArrowRight />
         </Button>
