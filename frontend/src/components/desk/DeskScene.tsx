@@ -534,7 +534,14 @@ function Scene({ hovered }: { hovered: RefObject<boolean> }) {
         </group>
       </group>
 
-      <ContactShadows position={[0, 0.001, 0]} opacity={0.32} scale={7} blur={2.6} far={1.6} resolution={512} color="#3b2a22" />
+      {/* Floor that only shows shadows: the desk, chair and character cast real, directional
+          shadows (falling back and to the left, like the reference), on the page's own background. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.0005, 0]} receiveShadow>
+        <planeGeometry args={[12, 12]} />
+        <shadowMaterial color="#3b2a22" opacity={0.28} />
+      </mesh>
+      {/* Soft ambient-occlusion contact under feet, legs and the bag, which grounds everything */}
+      <ContactShadows position={[0, 0.002, 0]} opacity={0.45} scale={6} blur={1.8} far={0.8} resolution={512} color="#3b2a22" />
     </>
   )
 }
@@ -558,10 +565,11 @@ export default function DeskScene({ className }: { className?: string }) {
       >
         <hemisphereLight args={['#fff6ea', '#c9b29a', 1.6]} />
         <directionalLight
-          position={[2.5, 4.5, 3]}
+          position={[3.2, 5, 1.6]}
           intensity={2.1}
           castShadow
-          shadow-mapSize={[1024, 1024]}
+          shadow-mapSize={[2048, 2048]}
+          shadow-radius={4}
           shadow-camera-left={-3}
           shadow-camera-right={3}
           shadow-camera-top={3}

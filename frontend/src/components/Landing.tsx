@@ -2,12 +2,13 @@ import { motion } from 'motion/react'
 import { lazy, Suspense } from 'react'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { QuickActions } from '@/components/chat/QuickActions'
+import { DeskSilhouette } from '@/components/desk/DeskSilhouette'
 import { FallbackBoundary } from '@/components/FallbackBoundary'
 import type { PublicProfile } from '@/types'
 
 // The voxel desk scene (three.js) loads in its own chunk. The download starts as soon as this
 // module loads (not when the hero first renders), and an empty box of the same size holds the
-// space until it is ready — no placeholder face flashing on every refresh.
+// space until it is ready (a soft silhouette of the scene) — no placeholder face on refresh.
 const deskSceneChunk = import('@/components/desk/DeskScene')
 const DeskScene = lazy(() => deskSceneChunk)
 const SCENE_BOX = 'aspect-[4/3] h-[clamp(11rem,46dvh,27rem)] max-w-[92vw]'
@@ -64,7 +65,7 @@ export function Landing({
         >
           {canRender3D ? (
             <FallbackBoundary fallback={<div className={SCENE_BOX} />}>
-              <Suspense fallback={<div className={SCENE_BOX} />}>
+              <Suspense fallback={<DeskSilhouette className={SCENE_BOX} />}>
                 {/* "me at work": walks in, sits down, opens the laptop, keeps working */}
                 <DeskScene className={`${SCENE_BOX} animate-in fade-in duration-700`} />
               </Suspense>
