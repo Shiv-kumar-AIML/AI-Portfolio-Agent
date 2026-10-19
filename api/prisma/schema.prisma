@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum MessageSource {
+  AGENT // sent by the AI agent's send_message tool on the visitor's behalf
+  FORM // sent through the contact form
+}
+
+/// A message a visitor left for the portfolio owner.
+model ContactMessage {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  source    MessageSource
+  status    MessageStatus @default(NEW)
+  sessionId String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
+/// One chat turn — what visitors ask and how the agent answered (for analytics and evals).
+model ChatLog {
+  id            String   @id @default(uuid())
+  sessionId     String?
+  question      String
+  answerPreview String?
+  toolsUsed     String[]
+  model         String?
+  latencyMs     Int?
+  error         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([sessionId])
+}

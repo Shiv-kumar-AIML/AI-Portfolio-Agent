@@ -1,0 +1,84 @@
+# Production: docker compose -f docker-compose.production.yml up -d --build
+#
+# Only nginx is published. ai-service, postgres and the api's /internal routes live on the private
+# Docker network. Secrets come from api/.env and ai-service/.env on the server (never committed);
+# POSTGRES_PASSWORD comes from the root .env (see .env.example).
+name: portfolio
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [portfolio]
+
+  api:
+    build:
+      context: ./api
+      target: production
+    restart: unless-stopped
+    env_file: ./api/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=5010
+      - DATABASE_URL=postgresql://portfolio:${POSTGRES_PASSWORD}@postgres:5432/portfolio
+      - AI_SERVICE_URL=http://ai-service:8000
+      - CONTENT_DIR=/content
+    volumes:
+      - ./content:/content:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [portfolio]
+
+  ai-service:
+    build:
+      context: ./ai-service
+    restart: unless-stopped
+    env_file: ./ai-service/.env
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - API_GATEWAY_URL=http://api:5010
+      - CONTENT_DIR=/content
+    volumes:
+      - ./content:/content:ro
+    # No `ports:` on purpose — see nginx/production.conf.
+    networks: [portfolio]
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    restart: unless-stopped
+    networks: [portfolio]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/conf.d/default.conf:ro
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on: [api, frontend]
+    networks: [portfolio]
+
+volumes:
+  postgres_data:
+
+networks:
+  portfolio:
+    driver: bridge

@@ -1,0 +1,15 @@
+# Runs every service's tests on main. Add a deploy job here with `needs: [ai-service, api, frontend]`
+# so nothing deploys unless all three pass.
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ai-service:
+    uses: ./.github/workflows/ai-service-tests.yml
+  api:
+    uses: ./.github/workflows/api-tests.yml
+  frontend:
+    uses: ./.github/workflows/frontend-tests.yml

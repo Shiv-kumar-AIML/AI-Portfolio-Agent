@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 340" role="img" aria-label="Avatar placeholder">
+  <!-- PLACEHOLDER: replace with your own memoji (e.g. frontend/public/avatar.png, transparent background)
+       and set "avatar": "/avatar.png" in content/profile.json. -->
+  <defs>
+    <radialGradient id="skin" cx="45%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#ffd9b8"/>
+      <stop offset="0.65" stop-color="#f1b98f"/>
+      <stop offset="1" stop-color="#d9946a"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#3b2a20"/>
+      <stop offset="1" stop-color="#1c130e"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#334155"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <radialGradient id="cheek" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f08a7a" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#f08a7a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- neck + shoulders -->
+  <path d="M60 340c6-52 46-80 100-80s94 28 100 80z" fill="url(#shirt)"/>
+  <path d="M132 232h56v38c0 15-12.5 26-28 26s-28-11-28-26z" fill="#e3a57c"/>
+  <!-- ears -->
+  <ellipse cx="74" cy="160" rx="16" ry="24" fill="#eaa77e"/>
+  <ellipse cx="246" cy="160" rx="16" ry="24" fill="#eaa77e"/>
+  <!-- head -->
+  <path d="M160 52c54 0 88 38 88 98 0 62-38 106-88 106S72 212 72 150c0-60 34-98 88-98z" fill="url(#skin)"/>
+  <!-- hair -->
+  <path d="M70 140c-8-62 30-108 92-108 58 0 98 38 92 104-6-22-20-40-40-50-30 12-80 14-118 2-14 14-22 32-26 52z" fill="url(#hair)"/>
+  <path d="M112 74c26 10 70 10 102-6-10 14-26 22-44 26 22 2 38-2 50-10-26 22-80 24-108-10z" fill="#4a3529" opacity="0.6"/>
+  <!-- brows -->
+  <path d="M106 132c10-8 26-10 38-4" stroke="#2a1d16" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M176 128c12-6 28-4 38 4" stroke="#2a1d16" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <!-- eyes -->
+  <ellipse cx="126" cy="158" rx="11" ry="13" fill="#fff"/>
+  <ellipse cx="194" cy="158" rx="11" ry="13" fill="#fff"/>
+  <circle cx="128" cy="160" r="7" fill="#3b2a20"/>
+  <circle cx="196" cy="160" r="7" fill="#3b2a20"/>
+  <circle cx="130.5" cy="157" r="2.4" fill="#fff"/>
+  <circle cx="198.5" cy="157" r="2.4" fill="#fff"/>
+  <!-- nose -->
+  <path d="M160 168c-4 14-6 22 2 24" stroke="#c98258" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- cheeks -->
+  <circle cx="106" cy="196" r="18" fill="url(#cheek)"/>
+  <circle cx="214" cy="196" r="18" fill="url(#cheek)"/>
+  <!-- smile -->
+  <path d="M132 208c16 16 40 16 56 0" stroke="#9a3f2c" stroke-width="6" stroke-linecap="round" fill="none"/>
+</svg>

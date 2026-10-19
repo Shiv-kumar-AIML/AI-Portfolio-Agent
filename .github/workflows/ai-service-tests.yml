@@ -1,0 +1,23 @@
+name: ai-service tests
+
+on:
+  workflow_call:
+  pull_request:
+    paths: ["ai-service/**", "content/**", ".github/workflows/ai-service-tests.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.22"
+      - run: uv sync --frozen --extra dev
+      - run: uv run ruff check app tests
+      - run: uv run ruff format --check app tests
+      - run: uv run mypy app
+      - run: uv run pytest

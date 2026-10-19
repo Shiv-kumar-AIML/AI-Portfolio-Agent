@@ -1,0 +1,111 @@
+# Local development: docker compose -f docker-compose.local.yml up --build
+#
+#   frontend   http://localhost:3061   Vite dev server with HMR (bind-mounted)
+#   api        http://localhost:3060   tsx watch (bind-mounted); Swagger at /api-docs
+#   ai-service http://localhost:3063   baked into its image — rebuild after changing it
+#                                      (docker compose -f docker-compose.local.yml up --build ai-service)
+#   postgres   localhost:5434
+#
+# Host ports are 306x on purpose: ai-tradesman already uses 3050-3053 on this machine.
+#
+# Each service reads its own .env (copy the .env.example next to it). INTERNAL_SERVICE_KEY must be
+# the same in api/.env and ai-service/.env.
+name: portfolio-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: portfolio_postgres_local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      # 5434 so it never collides with a native Postgres on 5432 (or another project's on 5433).
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [portfolio-local]
+
+  api:
+    build:
+      context: ./api
+      target: dev # installed deps only; source is bind-mounted below
+    container_name: portfolio_api_local
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3060}:5010"
+    env_file:
+      - path: ./api/.env
+        required: false
+    environment:
+      - NODE_ENV=development
+      - PORT=5010
+      # Inside the Docker network services are reached by name, not localhost.
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/portfolio
+      - AI_SERVICE_URL=http://ai-service:8000
+      - CONTENT_DIR=/content
+      - ALLOWED_ORIGINS=http://localhost:3061,http://localhost:5173
+      - ENABLE_API_DOCS=true
+    # via `sh`: the bind mount replaces the image's script with the host's, which may not be +x
+    entrypoint: ["sh", "./docker-entrypoint.sh"]
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./api:/app
+      - /app/node_modules # keep the image's node_modules (with the generated Prisma client)
+      - ./content:/content:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [portfolio-local]
+
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: portfolio_ai_service_local
+    restart: unless-stopped
+    ports:
+      # Published on loopback only, for debugging (/docs, /internal/search). Never in production.
+      - "127.0.0.1:${AI_SERVICE_PORT:-3063}:8000"
+    env_file:
+      - path: ./ai-service/.env
+        required: false
+    environment:
+      - ENVIRONMENT=development
+      - HOST=0.0.0.0 # 127.0.0.1 inside a container is unreachable from other containers
+      - PORT=8000
+      - API_GATEWAY_URL=http://api:5010
+      - CONTENT_DIR=/content
+    volumes:
+      # Content is mounted (not baked) so edits only need POST /api/admin/reindex, not a rebuild.
+      - ./content:/content:ro
+    networks: [portfolio-local]
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    container_name: portfolio_frontend_local
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3061}:5173"
+    environment:
+      - VITE_API_PROXY_TARGET=http://api:5010
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on: [api]
+    networks: [portfolio-local]
+
+volumes:
+  postgres_data_local:
+
+networks:
+  portfolio-local:
+    driver: bridge
