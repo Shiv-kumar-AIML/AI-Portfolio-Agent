@@ -97,42 +97,43 @@
 }
 
 .dark {
-    --background: #11132a;
-    --foreground: #f4ead9;
-    --card: #1b1e3a;
-    --card-foreground: #f4ead9;
-    --popover: #1b1e3a;
-    --popover-foreground: #f4ead9;
+    /* a cosy room at night: warm dark wood and lamplight, no navy */
+    --background: #17120f;
+    --foreground: #f4e8d6;
+    --card: #221a15;
+    --card-foreground: #f4e8d6;
+    --popover: #221a15;
+    --popover-foreground: #f4e8d6;
     --primary: #4fb3bb;
-    --primary-foreground: #0d1024;
-    --secondary: #24284a;
-    --secondary-foreground: #f4ead9;
-    --muted: #24284a;
-    --muted-foreground: #a9a3c2;
-    --accent: #2a2f55;
-    --accent-foreground: #f4ead9;
+    --primary-foreground: #14100d;
+    --secondary: #2c221b;
+    --secondary-foreground: #f4e8d6;
+    --muted: #2c221b;
+    --muted-foreground: #b3a08c;
+    --accent: #362a20;
+    --accent-foreground: #f4e8d6;
     --destructive: #ef6b5e;
-    --border: #2f3460;
-    --input: #2f3460;
-    --ring: #4fb3bb;
+    --border: #3e3026;
+    --input: #3e3026;
+    --ring: #e39a62;
     --chart-1: #e39a62;
     --chart-2: #4fb3bb;
     --chart-3: #b07b52;
     --chart-4: #7cc35c;
     --chart-5: #f1b88c;
-    --sidebar: #1b1e3a;
-    --sidebar-foreground: #f4ead9;
+    --sidebar: #221a15;
+    --sidebar-foreground: #f4e8d6;
     --sidebar-primary: #4fb3bb;
-    --sidebar-primary-foreground: #0d1024;
-    --sidebar-accent: #24284a;
-    --sidebar-accent-foreground: #f4ead9;
-    --sidebar-border: #2f3460;
-    --sidebar-ring: #4fb3bb;
+    --sidebar-primary-foreground: #14100d;
+    --sidebar-accent: #2c221b;
+    --sidebar-accent-foreground: #f4e8d6;
+    --sidebar-border: #3e3026;
+    --sidebar-ring: #e39a62;
     --wood: #e39a62;
-    --wood-dark: #b06a36;
+    --wood-dark: #a8602e;
     --teal: #4fb3bb;
     --teal-dark: #2a7a81;
-    --vx-edge: #070816;
+    --vx-edge: #0a0705;
 }
 
 @layer base {
@@ -218,10 +219,10 @@
 }
 .dark .vx-title {
   text-shadow:
-    1px 1px 0 var(--teal),
-    2px 2px 0 var(--teal),
-    3px 3px 0 var(--teal-dark),
-    4px 4px 0 var(--teal-dark),
+    1px 1px 0 var(--wood),
+    2px 2px 0 var(--wood),
+    3px 3px 0 var(--wood-dark),
+    4px 4px 0 var(--wood-dark),
     5px 5px 0 var(--vx-edge);
 }
 

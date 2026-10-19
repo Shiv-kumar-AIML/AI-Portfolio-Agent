@@ -145,14 +145,14 @@ function useCodeScreen() {
     const desktop = (dark: boolean) => upright(() => paintDesktop(dark))
     const paintDesktop = (dark: boolean) => {
       const grad = g.createLinearGradient(0, 0, 0, canvas.height)
-      const stops = dark ? ['#0d1024', '#1b1e3a', '#2f2346'] : ['#bfe3e6', '#e6eedd', '#f6eee2', '#f3d2b0']
+      const stops = dark ? ['#120d0a', '#1f1712', '#3a2618'] : ['#bfe3e6', '#e6eedd', '#f6eee2', '#f3d2b0']
       stops.forEach((c, i) => grad.addColorStop(i / (stops.length - 1), c))
       g.fillStyle = grad
       g.fillRect(0, 0, canvas.width, canvas.height)
       g.fillStyle = dark ? 'rgba(15,18,32,0.7)' : 'rgba(255,255,255,0.6)'
       g.fillRect(0, 0, canvas.width, 9)
       // the Messages window
-      g.fillStyle = dark ? '#11132a' : '#f6eee2'
+      g.fillStyle = dark ? '#17120f' : '#f6eee2'
       g.beginPath()
       g.roundRect(48, 22, 160, 118, 3)
       g.fill()
@@ -773,9 +773,9 @@ function Scene({
 // hangs on the page (upper right, more frontal) and turns cool blue, the sky fill drops and the
 // laptop screen becomes the warm-cool glow on the character's face. Eased, so the switch fades.
 const SUN = { pos: new THREE.Vector3(3.2, 5, 1.6), color: new THREE.Color('#fff4e6'), intensity: 2.1 }
-const MOON = { pos: new THREE.Vector3(2.4, 4.2, 3.4), color: new THREE.Color('#a8c0ff'), intensity: 2.0 }
+const MOON = { pos: new THREE.Vector3(2.4, 4.2, 3.4), color: new THREE.Color('#d6dcff'), intensity: 1.7 }
 const SKY_DAY = { sky: new THREE.Color('#fff6ea'), ground: new THREE.Color('#c9b29a'), intensity: 1.6 }
-const SKY_NIGHT = { sky: new THREE.Color('#5a6aa6'), ground: new THREE.Color('#1f2236'), intensity: 0.55 }
+const SKY_NIGHT = { sky: new THREE.Color('#8a7468'), ground: new THREE.Color('#2a1d16'), intensity: 0.6 }
 
 function Lights({ night, dark }: { night: RefObject<number>; dark: RefObject<boolean> }) {
   const key = useRef<THREE.DirectionalLight>(null)

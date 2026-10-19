@@ -91,7 +91,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           size="icon-lg"
           disabled={!value.trim() || tooLong}
           aria-label="Send"
-          className="vx-sm vx-press size-10 rounded-md bg-teal text-white hover:bg-teal disabled:opacity-60 dark:text-[#0d1024]"
+          className="vx-sm vx-press size-10 rounded-md bg-teal text-white hover:bg-teal disabled:opacity-60 dark:text-[#14100d]"
         >
           <ArrowRight />
         </Button>

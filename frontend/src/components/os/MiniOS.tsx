@@ -39,7 +39,7 @@ import type { AssistantMessage, Message, PublicProfile, UserMessage } from '@/ty
 
 const WALLPAPER = {
   light: 'linear-gradient(180deg, #bfe3e6 0%, #e6eedd 45%, #f6eee2 72%, #f3d2b0 100%)',
-  dark: 'linear-gradient(180deg, #0d1024 0%, #1b1e3a 55%, #2f2346 100%)',
+  dark: 'linear-gradient(180deg, #120d0a 0%, #1f1712 55%, #3a2618 100%)',
 }
 
 // exit depends on why the window goes away (read at exit time through AnimatePresence `custom`)
@@ -238,7 +238,7 @@ function Composer({
             aria-label="Send"
             animate={pressing ? { scale: 0.82 } : { scale: 1 }}
             transition={{ type: 'spring', stiffness: 600, damping: 18 }}
-            className="vx-sm grid size-9 shrink-0 place-items-center rounded-md bg-teal text-white disabled:opacity-50 dark:text-[#0d1024]"
+            className="vx-sm grid size-9 shrink-0 place-items-center rounded-md bg-teal text-white disabled:opacity-50 dark:text-[#14100d]"
           >
             <ArrowUp className="size-4" />
           </motion.button>
@@ -258,7 +258,7 @@ function UserBubble({ message, seen }: { message: UserMessage; seen: boolean }) 
       transition={{ type: 'spring', stiffness: 420, damping: 30 }}
       className="flex flex-col items-end"
     >
-      <div className="vx-sm max-w-[82%] rounded-md bg-teal px-3.5 py-2 text-sm whitespace-pre-wrap text-white sm:text-[15px] dark:text-[#0d1024]">
+      <div className="vx-sm max-w-[82%] rounded-md bg-teal px-3.5 py-2 text-sm whitespace-pre-wrap text-white sm:text-[15px] dark:text-[#14100d]">
         {message.text}
       </div>
       {seen && (
