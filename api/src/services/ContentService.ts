@@ -35,6 +35,7 @@ export const getPublicProfile = () => {
     title: p.title,
     tagline: p.tagline,
     location: p.location,
+    timezone: p.timezone,
     availability: p.availability,
     avatar: p.avatar,
     email: p.email,

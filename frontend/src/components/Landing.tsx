@@ -4,6 +4,7 @@ import { ChatInput } from '@/components/chat/ChatInput'
 import { QuickActions } from '@/components/chat/QuickActions'
 import { DeskSilhouette } from '@/components/desk/DeskSilhouette'
 import { FallbackBoundary } from '@/components/FallbackBoundary'
+import { SkyToggle } from '@/components/SkyToggle'
 import type { PublicProfile } from '@/types'
 
 // The voxel desk scene (three.js) loads in its own chunk. The download starts as soon as this
@@ -35,7 +36,9 @@ export function Landing({
   onAsk: (q: string) => void
 }) {
   return (
-    <main className="relative flex w-full flex-1 flex-col items-center overflow-hidden px-4 text-center">
+    <main className="relative flex w-full flex-1 flex-col items-center overflow-x-clip px-4 text-center">
+      {/* the sun / moon in the sky — it is the light/dark switch */}
+      <SkyToggle className="absolute top-6 right-[9%] z-10 sm:top-10 sm:right-[11%] lg:right-[13%]" />
       {/* First screen: greeting, title, avatar and the input fill the viewport below the top bar
           (4.5rem / 5.5rem tall). The tiles start below the fold. */}
       <section className="flex min-h-[calc(100dvh-4.5rem)] w-full max-w-3xl flex-col items-center sm:min-h-[calc(100dvh-5.5rem)]">

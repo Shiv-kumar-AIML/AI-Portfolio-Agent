@@ -1,6 +1,7 @@
 import { ChevronRight, SquarePen } from 'lucide-react'
 import { motion } from 'motion/react'
 import { socialLinks } from '@/components/BrandIcons'
+import { LocalTimePill } from '@/components/LocalTimePill'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -80,6 +81,11 @@ export function TopBar({
           )}
         </div>
 
+        {/* Home: the live local-time pill (the sun/moon on the page is the theme switch there).
+            Chat: new chat, socials and the theme switch. */}
+        {!inChat ? (
+          <LocalTimePill profile={profile} />
+        ) : (
         <div className="flex items-center gap-0.5 rounded-full border bg-background/80 p-0.5 shadow-sm backdrop-blur">
           {inChat && (
             <Tooltip>
@@ -105,6 +111,7 @@ export function TopBar({
           ))}
           <ThemeToggle />
         </div>
+        )}
       </div>
     </header>
   )

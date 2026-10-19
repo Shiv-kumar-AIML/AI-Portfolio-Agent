@@ -14,6 +14,7 @@ export interface PublicProfile {
   title: string
   tagline: string
   location?: string
+  timezone?: string
   availability?: string
   avatar?: string
   email?: string

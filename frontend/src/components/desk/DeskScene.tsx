@@ -2,6 +2,7 @@ import { ContactShadows } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
+import { useTheme } from '@/components/theme'
 
 /**
  * The hero scene on the landing page, in a voxel style: a desk in the middle; a little voxel
@@ -161,7 +162,7 @@ type Rig = {
   screen: THREE.Mesh | null
 }
 
-function Scene({ hovered }: { hovered: RefObject<boolean> }) {
+function Scene({ hovered, night }: { hovered: RefObject<boolean>; night: RefObject<number> }) {
   const mat = useMaterials()
   const screen = useCodeScreen()
   const screenMat = useMemo(
@@ -204,6 +205,7 @@ function Scene({ hovered }: { hovered: RefObject<boolean> }) {
   })
 
   const tmp = useMemo(() => new THREE.Vector3(), [])
+  const glow = useRef<THREE.PointLight>(null)
 
   useFrame((_, raw) => {
     const dt = Math.min(raw, 1 / 30)
@@ -364,6 +366,8 @@ function Scene({ hovered }: { hovered: RefObject<boolean> }) {
     if (r.chair) r.chair.position.z = s.chairZ
     if (r.lid) r.lid.rotation.x = s.lid * 1.85
     screenMat.emissiveIntensity = s.screenOn * 1.15
+    // the screen lights up the face — barely by day, clearly at night
+    if (glow.current) glow.current.intensity = s.screenOn * (0.15 + 1.6 * night.current)
     if (s.phase === 'work') {
       s.codeIn -= dt
       s.cursorIn -= dt
@@ -433,6 +437,7 @@ function Scene({ hovered }: { hovered: RefObject<boolean> }) {
             {/* logo on the back of the lid */}
             <Box s={[0.07, 0.003, 0.05]} p={[0, 0.019, -0.15]} c="#7fe3e6" mat={m} />
             {/* the screen faces down when closed, towards the character when open */}
+            <pointLight ref={glow} position={[0, 0.12, -0.32]} color="#8fd6ff" intensity={0} distance={1.4} decay={1.6} />
             <mesh ref={set('screen')} geometry={boxGeo} material={screenMat} scale={[0.4, 0.003, 0.26]} position={[0, -0.0005, -0.15]} />
           </group>
         </group>
@@ -546,7 +551,58 @@ function Scene({ hovered }: { hovered: RefObject<boolean> }) {
   )
 }
 
+// Day: warm sunlight from the upper right. Night: the same key light swings to where the moon
+// hangs on the page (upper right, more frontal) and turns cool blue, the sky fill drops and the
+// laptop screen becomes the warm-cool glow on the character's face. Eased, so the switch fades.
+const SUN = { pos: new THREE.Vector3(3.2, 5, 1.6), color: new THREE.Color('#fff4e6'), intensity: 2.1 }
+const MOON = { pos: new THREE.Vector3(2.4, 4.2, 3.4), color: new THREE.Color('#a8c0ff'), intensity: 2.0 }
+const SKY_DAY = { sky: new THREE.Color('#fff6ea'), ground: new THREE.Color('#c9b29a'), intensity: 1.6 }
+const SKY_NIGHT = { sky: new THREE.Color('#5a6aa6'), ground: new THREE.Color('#1f2236'), intensity: 0.55 }
+
+function Lights({ night, dark }: { night: RefObject<number>; dark: RefObject<boolean> }) {
+  const key = useRef<THREE.DirectionalLight>(null)
+  const sky = useRef<THREE.HemisphereLight>(null)
+  const fill = useRef<THREE.DirectionalLight>(null)
+  useFrame((_, dt) => {
+    const k = (night.current = damp(night.current, dark.current ? 1 : 0, 3, Math.min(dt, 1 / 30)))
+    if (key.current) {
+      key.current.position.lerpVectors(SUN.pos, MOON.pos, k)
+      key.current.color.lerpColors(SUN.color, MOON.color, k)
+      key.current.intensity = lerp(SUN.intensity, MOON.intensity, k)
+    }
+    if (sky.current) {
+      sky.current.color.lerpColors(SKY_DAY.sky, SKY_NIGHT.sky, k)
+      sky.current.groundColor.lerpColors(SKY_DAY.ground, SKY_NIGHT.ground, k)
+      sky.current.intensity = lerp(SKY_DAY.intensity, SKY_NIGHT.intensity, k)
+    }
+    if (fill.current) fill.current.intensity = lerp(0.6, 0.12, k)
+  })
+  return (
+    <>
+      <hemisphereLight ref={sky} args={[SKY_DAY.sky, SKY_DAY.ground, SKY_DAY.intensity]} />
+      <directionalLight
+        ref={key}
+        position={SUN.pos.toArray()}
+        intensity={SUN.intensity}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-radius={4}
+        shadow-camera-left={-3}
+        shadow-camera-right={3}
+        shadow-camera-top={3}
+        shadow-camera-bottom={-3}
+        shadow-bias={-0.0004}
+      />
+      <directionalLight ref={fill} position={[-3, 2.5, -2]} intensity={0.6} color="#ffe3c4" />
+    </>
+  )
+}
+
 export default function DeskScene({ className }: { className?: string }) {
+  const { resolvedTheme } = useTheme()
+  const dark = useRef(resolvedTheme === 'dark')
+  dark.current = resolvedTheme === 'dark'
+  const night = useRef(dark.current ? 1 : 0)
   const hovered = useRef(false)
   return (
     <div
@@ -563,21 +619,8 @@ export default function DeskScene({ className }: { className?: string }) {
         gl={{ antialias: true, alpha: true }}
         onCreated={({ camera }) => camera.lookAt(-0.15, 0.55, -0.3)}
       >
-        <hemisphereLight args={['#fff6ea', '#c9b29a', 1.6]} />
-        <directionalLight
-          position={[3.2, 5, 1.6]}
-          intensity={2.1}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-radius={4}
-          shadow-camera-left={-3}
-          shadow-camera-right={3}
-          shadow-camera-top={3}
-          shadow-camera-bottom={-3}
-          shadow-bias={-0.0004}
-        />
-        <directionalLight position={[-3, 2.5, -2]} intensity={0.6} color="#ffe3c4" />
-        <Scene hovered={hovered} />
+        <Lights night={night} dark={dark} />
+        <Scene hovered={hovered} night={night} />
       </Canvas>
     </div>
   )
