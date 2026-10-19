@@ -151,6 +151,15 @@
   background-clip: text;
 }
 
+/* On a near-black page the same faint ink disappears — dark mode needs more of it. */
+.dark .watermark {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--foreground) 13%, transparent) 20%,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 80%
+  );
+}
+
 .avatar-float { animation: avatar-float 6s ease-in-out infinite; }
 @keyframes avatar-float {
   0%, 100% { transform: translateY(0); }
