@@ -1,5 +1,5 @@
 import { createSseParser } from '@/lib/sse'
-import type { Project, PublicProfile, StreamFrame } from '@/types'
+import type { About, GithubActivity, Project, PublicProfile, RepoDetails, StreamFrame } from '@/types'
 
 // Same-origin by default (nginx in production, the Vite proxy in dev).
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
@@ -30,8 +30,18 @@ async function getJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** WebSocket URL of an api path (same host as the page unless VITE_API_URL points elsewhere). */
+export const wsUrl = (path: string) => {
+  const base = new URL(API_BASE || window.location.origin)
+  base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:'
+  return `${base.origin}${path}`
+}
+
 export const fetchProfile = () => getJson<PublicProfile>('/api/profile')
 export const fetchProjects = () => getJson<Project[]>('/api/projects')
+export const fetchAbout = () => getJson<About>('/api/about')
+export const fetchGithub = () => getJson<GithubActivity>('/api/github')
+export const fetchRepo = (name: string) => getJson<RepoDetails>(`/api/github/repos/${encodeURIComponent(name)}`)
 
 export async function sendContactForm(body: {
   name: string

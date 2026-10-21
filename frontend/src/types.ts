@@ -66,6 +66,7 @@ export type CardType =
   | 'contact'
   | 'github'
   | 'message_sent'
+  | 'open_link'
 
 export interface ToolStep {
   id: string
@@ -99,3 +100,67 @@ export interface AssistantMessage {
 }
 
 export type Message = UserMessage | AssistantMessage
+
+export interface SkillGroup {
+  category: string
+  items: string[]
+}
+
+export interface Job {
+  company: string
+  role: string
+  start: string
+  end: string | null
+  location?: string
+  summary?: string
+  highlights?: string[]
+  stack?: string[]
+}
+
+export interface Education {
+  institution: string
+  degree: string
+  start?: string
+  end?: string
+  notes?: string
+}
+
+/** GET /api/about — the career page in the mini-OS browser. */
+export interface About {
+  bio: string
+  experience: Job[]
+  education: Education[]
+  skills: SkillGroup[]
+}
+
+export interface GithubActivity {
+  username: string
+  profileUrl: string
+  avatarUrl: string | null
+  name: string | null
+  bio: string | null
+  publicRepos: number
+  followers: number
+  totalStars: number
+  topLanguages: Array<{ name: string; repos: number }>
+  recentRepos: Array<{ name: string; description: string | null; url: string; stars: number; language: string | null; updatedAt: string }>
+  allRepos: Array<{ name: string; description: string | null; language: string | null }>
+}
+
+export interface RepoDetails {
+  name: string
+  url: string
+  description: string | null
+  homepage: string | null
+  topics: string[]
+  stars: number
+  forks: number
+  defaultBranch: string
+  createdAt: string
+  pushedAt: string
+  languages: Array<{ name: string; percent: number }>
+  readme: string | null
+  readmeTruncated: boolean
+  files: string[]
+  totalFiles: number
+}

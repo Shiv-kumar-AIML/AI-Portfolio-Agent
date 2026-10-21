@@ -1,10 +1,20 @@
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { ExternalLink } from '@/components/ExternalLink'
 import { cn } from '@/lib/utils'
 
 // The model's text is untrusted: react-markdown renders no raw HTML, and every link opens in a new
-// tab without leaking the opener.
-export function Markdown({ text, className }: { text: string; className?: string }) {
+// tab (or the mini-OS browser) without leaking the opener. `resolveUrl` rewrites relative links and
+// images (a README's, against its repo).
+export function Markdown({
+  text,
+  className,
+  resolveUrl,
+}: {
+  text: string
+  className?: string
+  resolveUrl?: (url: string, key: string) => string
+}) {
   return (
     <div
       className={cn(
@@ -17,12 +27,9 @@ export function Markdown({ text, className }: { text: string; className?: string
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={(url, key) => defaultUrlTransform(resolveUrl ? resolveUrl(url, key) : url)}
         components={{
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => <ExternalLink href={href}>{children}</ExternalLink>,
         }}
       >
         {text}

@@ -2,6 +2,7 @@ import { Calendar, Check, Copy, Mail, MapPin, Send } from 'lucide-react'
 import { useState } from 'react'
 import { socialLinks } from '@/components/BrandIcons'
 import { useChatActions } from '@/components/chat/ChatActions'
+import { ExternalLink } from '@/components/ExternalLink'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Socials } from '@/types'
@@ -54,15 +55,13 @@ export function ContactCard({ data }: { data: ContactData }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {socialLinks(data.socials).map(({ key, label, href, Icon }) => (
-            <a
+            <ExternalLink
               key={key}
               href={href}
-              target="_blank"
-              rel="noopener noreferrer"
               className={buttonVariants({ variant: 'outline' })}
             >
               <Icon /> {label}
-            </a>
+            </ExternalLink>
           ))}
         </div>
         <div className="flex flex-wrap gap-2 border-t pt-4">
@@ -70,9 +69,9 @@ export function ContactCard({ data }: { data: ContactData }) {
             <Send /> Write me a message
           </Button>
           {data.calendlyUrl && (
-            <a href={data.calendlyUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: 'secondary' })}>
+            <ExternalLink href={data.calendlyUrl} className={buttonVariants({ variant: 'secondary' })}>
               <Calendar /> Book a call
-            </a>
+            </ExternalLink>
           )}
         </div>
       </CardContent>

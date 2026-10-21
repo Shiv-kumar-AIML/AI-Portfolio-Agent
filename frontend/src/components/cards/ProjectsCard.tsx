@@ -2,6 +2,7 @@ import { ArrowUpRight, ExternalLink } from 'lucide-react'
 import { motion } from 'motion/react'
 import { GithubIcon } from '@/components/BrandIcons'
 import { useChatActions } from '@/components/chat/ChatActions'
+import { ExternalLink as Link } from '@/components/ExternalLink'
 import { Badge } from '@/components/ui/badge'
 import type { Project } from '@/types'
 
@@ -18,26 +19,22 @@ export function ProjectLinks({ project }: { project: Project }) {
   return (
     <div className="flex gap-3 text-xs sm:text-sm">
       {github && (
-        <a
+        <Link
           href={github}
-          target="_blank"
-          rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
         >
           <GithubIcon className="size-3.5" /> Code
-        </a>
+        </Link>
       )}
       {demo && (
-        <a
+        <Link
           href={demo}
-          target="_blank"
-          rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
         >
           <ExternalLink className="size-3.5" /> Live demo
-        </a>
+        </Link>
       )}
     </div>
   )

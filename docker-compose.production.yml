@@ -1,7 +1,8 @@
 # Production: docker compose -f docker-compose.production.yml up -d --build
 #
-# Only nginx is published. ai-service, postgres and the api's /internal routes live on the private
-# Docker network. Secrets come from api/.env and ai-service/.env on the server (never committed);
+# Only nginx is published. ai-service, browser, postgres and the api's /internal routes live on the
+# private Docker network. Secrets come from api/.env, ai-service/.env and browser/.env on the server
+# (never committed);
 # POSTGRES_PASSWORD comes from the root .env (see .env.example).
 name: portfolio
 
@@ -33,6 +34,7 @@ services:
       - PORT=5010
       - DATABASE_URL=postgresql://portfolio:${POSTGRES_PASSWORD}@postgres:5432/portfolio
       - AI_SERVICE_URL=http://ai-service:8000
+      - BROWSER_SERVICE_URL=ws://browser:8090
       - CONTENT_DIR=/content
     volumes:
       - ./content:/content:ro
@@ -54,6 +56,22 @@ services:
       - CONTENT_DIR=/content
     volumes:
       - ./content:/content:ro
+    # No `ports:` on purpose — see nginx/production.conf.
+    networks: [portfolio]
+
+  # Live Chromium for the mini-OS browser. Internal only, like ai-service.
+  browser:
+    build:
+      context: ./browser
+      target: production
+    restart: unless-stopped
+    init: true
+    shm_size: 1gb
+    env_file: ./browser/.env
+    volumes:
+      - ./content:/content:ro
+    # Each session is a Chromium context; cap the service so visitors can't starve the rest.
+    mem_limit: 1500m
     # No `ports:` on purpose — see nginx/production.conf.
     networks: [portfolio]
 

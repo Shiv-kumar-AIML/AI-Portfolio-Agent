@@ -7,6 +7,7 @@ import {
   Copy,
   FileText,
   FolderGit2,
+  Globe,
   Layers,
   Mail,
   MessageCircle,
@@ -16,40 +17,36 @@ import {
   Wifi,
 } from 'lucide-react'
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { socialLinks } from '@/components/BrandIcons'
 import { ToolCardView } from '@/components/cards'
+import { ChatActionsContext, useChatActions } from '@/components/chat/ChatActions'
 import { Sources } from '@/components/chat/Sources'
 import { deskSignals, getScreenQuad, quadTransform, subscribeScreenQuad } from '@/components/desk/signals'
 import { useClock } from '@/components/LocalTimePill'
 import { Markdown } from '@/components/Markdown'
 import { useTheme } from '@/components/theme'
+import { NEW_TAB, normalizeUrl } from '@/lib/browserUrl'
+import { readTheme, RemoteBrowser } from '@/lib/remoteBrowser'
 import { cn } from '@/lib/utils'
 import type { AssistantMessage, Message, PublicProfile, UserMessage } from '@/types'
+import { Browser, remoteTabId, useBrowserTabs, usesLive } from './Browser'
+import { TrafficLights, WINDOW_VARIANTS } from './chrome'
 
 /**
  * "ShivOS" — the conversation, shown as a little operating system on the character's laptop.
  * The camera dives into the screen (DeskScene) and this overlay takes over exactly where the
- * screen fills the view: menu bar, desktop icons, a draggable Messages window, a dock.
+ * screen fills the view: menu bar, desktop icons, draggable Messages and Browser windows, a dock.
  *
  * The owner "types" every answer: while the reply streams it is typed into the composer letter by
  * letter (that's his keyboard), then the send button presses and the message pops into the thread.
  * Red closes the conversation (and the camera flies back out); yellow minimises to the dock.
+ * Links open in the Browser — including the ones the agent opens (`open_link` cards).
  */
 
 const WALLPAPER = {
   light: 'linear-gradient(180deg, #bfe3e6 0%, #e6eedd 45%, #f6eee2 72%, #f3d2b0 100%)',
   dark: 'linear-gradient(180deg, #120d0a 0%, #1f1712 55%, #3a2618 100%)',
-}
-
-// exit depends on why the window goes away (read at exit time through AnimatePresence `custom`)
-const WINDOW_VARIANTS = {
-  hidden: { opacity: 0, scale: 0.92, y: 24 },
-  shown: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 26 } },
-  gone: (w: string) =>
-    w === 'closing'
-      ? { opacity: 0, scale: 0.85, transition: { duration: 0.22 } }
-      : { opacity: 0, scale: 0.3, y: 320, transition: { duration: 0.35 } },
 }
 
 const QUESTIONS = {
@@ -402,23 +399,6 @@ function TypingBubble({ name }: { name?: string }) {
 
 // ---------------------------------------------------------------- window chrome
 
-function TrafficLights({ onClose, onMinimize, onMaximize }: { onClose: () => void; onMinimize: () => void; onMaximize: () => void }) {
-  const dot = 'group/dot grid size-3.5 place-items-center rounded-[3px] border-2 border-vx-edge text-[8px] font-black leading-none text-black/70 sm:size-4'
-  return (
-    <div className="group flex items-center gap-1.5 sm:gap-2" onPointerDown={(e) => e.stopPropagation()}>
-      <button type="button" aria-label="Close conversation" onClick={onClose} className={cn(dot, 'bg-[#ff5f57]')}>
-        <span className="opacity-0 group-hover:opacity-100">×</span>
-      </button>
-      <button type="button" aria-label="Minimise" onClick={onMinimize} className={cn(dot, 'bg-[#febc2e]')}>
-        <span className="opacity-0 group-hover:opacity-100">–</span>
-      </button>
-      <button type="button" aria-label="Maximise" onClick={onMaximize} className={cn(dot, 'bg-[#28c840]')}>
-        <span className="opacity-0 group-hover:opacity-100">+</span>
-      </button>
-    </div>
-  )
-}
-
 function DesktopIcon({ label, onOpen, children }: { label: string; onOpen: () => void; children: ReactNode }) {
   return (
     <button
@@ -511,6 +491,65 @@ export function MiniOS({
   const drag = useDragControls()
   // on the laptop screen the conversation gets the whole screen (maximised) to stay readable
   const [win, setWin] = useState<'open' | 'min' | 'max' | 'closing'>(pov ? 'max' : 'open')
+  // the Browser window, and which window is in front
+  const [browserWin, setBrowserWin] = useState<'closed' | 'open' | 'min' | 'max'>('closed')
+  const [front, setFront] = useState<'messages' | 'browser'>('messages')
+  const tabs = useBrowserTabs()
+  const { open: openTab } = tabs
+  const openLink = useCallback(
+    (href: string) => {
+      const url = normalizeUrl(href)
+      if (!url) return
+      openTab(url)
+      setBrowserWin((w) => (w === 'open' || w === 'max' ? w : pov ? 'max' : 'open'))
+      setFront('browser')
+    },
+    [openTab, pov]
+  )
+  const showBrowser = () => {
+    if (browserWin === 'closed') openLink(NEW_TAB)
+    else {
+      setBrowserWin((w) => (w === 'min' ? (pov ? 'max' : 'open') : w))
+      setFront('browser')
+    }
+  }
+  const showMessages = () => {
+    setWin((w) => (w === 'min' ? 'open' : w))
+    setFront('messages')
+  }
+  // the live browser behind it: one server-side Chromium session while the Browser has tabs
+  const remote = useMemo(() => new RemoteBrowser(), [])
+  useSyncExternalStore(remote.subscribe, remote.getVersion)
+  const { replace: replaceTabUrl } = tabs
+  useEffect(() => {
+    remote.onNav = (key, url) => replaceTabUrl(Number(key.slice(1)), url)
+    remote.onPopup = openLink
+  }, [remote, replaceTabUrl, openLink])
+  useEffect(() => () => remote.disconnect(), [remote])
+  // live pages follow the OS theme (read after the theme class has been applied)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const theme = readTheme(resolvedTheme === 'dark' ? 'dark' : 'light')
+      if (theme) remote.setTheme(theme)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [remote, resolvedTheme])
+  useEffect(() => {
+    if (!tabs.tabs.length) {
+      if (remote.status !== 'idle') remote.disconnect()
+      return
+    }
+    if (remote.status === 'unavailable' || remote.status === 'ended') return
+    for (const tab of tabs.tabs) {
+      if (usesLive(tab, profile?.socials)) remote.open(remoteTabId(tab), tab.history[tab.index])
+    }
+    remote.keepOnly(tabs.tabs.map(remoteTabId))
+    if (tabs.active) remote.focus(remoteTabId(tabs.active))
+  }, [remote, remote.status, tabs.tabs, tabs.active, profile?.socials])
+
+  const chatActions = useChatActions()
+  const osActions = useMemo(() => ({ ...chatActions, openLink }), [chatActions, openLink])
+
   const name = profile?.name
   const first = profile?.firstName ?? 'Shiv'
   const links = socialLinks(profile?.socials)
@@ -526,6 +565,22 @@ export function MiniOS({
       )
   )
   const markDelivered = useMemo(() => (id: string) => setDelivered((d) => new Set(d).add(id)), [])
+
+  // a link the agent opened (open_link) shows in the browser once its answer has been "sent"
+  const openedLinks = useRef(
+    new Set(restored ? messages.flatMap((m) => (m.role === 'assistant' ? m.cards.map((c) => c.id) : [])) : [])
+  )
+  useEffect(() => {
+    for (const m of messages) {
+      if (m.role !== 'assistant' || !delivered.has(m.id)) continue
+      for (const card of m.cards) {
+        if (card.card !== 'open_link' || openedLinks.current.has(card.id)) continue
+        openedLinks.current.add(card.id)
+        const url = (card.data as { url?: unknown } | null)?.url
+        if (typeof url === 'string') openLink(url)
+      }
+    }
+  }, [messages, delivered, openLink])
   const last = messages[messages.length - 1]
   const live = last?.role === 'assistant' && !delivered.has(last.id) ? last : undefined
   // errors and stops skip the typing — there's nothing to type
@@ -542,7 +597,7 @@ export function MiniOS({
   }, [messages.length, delivered, live?.cards.length])
 
   const ask = (q: string) => {
-    setWin((w) => (w === 'min' ? 'open' : w))
+    showMessages()
     if (!busy) onSend(q)
   }
   // Leave / red button / power: animate the window away if it's on screen, then end the
@@ -569,6 +624,7 @@ export function MiniOS({
   const lastDeliveredAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && delivered.has(m.id))
 
   return (
+    <ChatActionsContext.Provider value={osActions}>
     <motion.div
       className={cn('fixed inset-0 z-50 select-none', waiting && 'invisible')}
       style={{ pointerEvents: onScreen ? 'none' : undefined }}
@@ -656,7 +712,7 @@ export function MiniOS({
             </span>
           </DesktopIcon>
           {profile?.resumeUrl && (
-            <DesktopIcon label="Resume.pdf" onOpen={() => window.open(profile.resumeUrl, '_blank', 'noopener,noreferrer')}>
+            <DesktopIcon label="Resume.pdf" onOpen={() => openLink(profile.resumeUrl!)}>
               <span className="grid size-full place-items-center rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600">
                 <FileText className="size-6 text-white" />
               </span>
@@ -680,8 +736,10 @@ export function MiniOS({
               initial="hidden"
               animate="shown"
               exit="gone"
+              onPointerDownCapture={() => setFront('messages')}
               className={cn(
                 'absolute flex flex-col overflow-hidden border-2 border-vx-edge bg-background shadow-[0_8px_0_var(--vx-edge)] select-text',
+                front === 'messages' ? 'z-[3]' : 'z-[2]',
                 win === 'max'
                   ? 'inset-x-0 top-0 bottom-[4.5rem] rounded-none'
                   : 'inset-x-2 top-2 bottom-20 rounded-lg sm:inset-x-auto sm:top-[6%] sm:bottom-auto sm:left-[calc(50%-min(380px,46cqw))] sm:h-[min(620px,74cqh)] sm:w-[min(760px,92cqw)]'
@@ -692,7 +750,7 @@ export function MiniOS({
                 onPointerDown={(e) => win === 'open' && drag.start(e)}
                 className="flex h-11 shrink-0 cursor-grab items-center gap-3 border-b-2 border-vx-edge bg-wood px-3.5 text-white active:cursor-grabbing"
               >
-                <TrafficLights onClose={close} onMinimize={() => setWin('min')} onMaximize={() => setWin((w) => (w === 'max' ? 'open' : 'max'))} />
+                <TrafficLights closeLabel="Close conversation" onClose={close} onMinimize={() => setWin('min')} onMaximize={() => setWin((w) => (w === 'max' ? 'open' : 'max'))} />
                 <div className="flex min-w-0 flex-1 items-center justify-center gap-2 pr-12">
                   <OwnerAvatar name={name} />
                   <div className="min-w-0 leading-tight">
@@ -740,15 +798,41 @@ export function MiniOS({
           )}
         </AnimatePresence>
 
-        {/* minimised: a gentle hint */}
+        {/* the Browser window */}
+        <AnimatePresence custom={browserWin === 'closed' ? 'closing' : 'min'}>
+          {(browserWin === 'open' || browserWin === 'max') && (
+            <Browser
+              key="browser"
+              tabs={tabs}
+              remote={remote}
+              profile={profile}
+              maximized={browserWin === 'max'}
+              front={front === 'browser'}
+              constraints={desktop}
+              onClose={() => {
+                setBrowserWin('closed')
+                setFront('messages')
+                tabs.clear()
+              }}
+              onMinimize={() => {
+                setBrowserWin('min')
+                setFront('messages')
+              }}
+              onMaximize={() => setBrowserWin((w) => (w === 'max' ? 'open' : 'max'))}
+              onFocus={() => setFront('browser')}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* minimised with nothing else open: a gentle hint */}
         <AnimatePresence>
-          {win === 'min' && (
+          {win === 'min' && (browserWin === 'closed' || browserWin === 'min') && (
             <motion.button
               type="button"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              onClick={() => setWin('open')}
+              onClick={showMessages}
               className="vx-sm absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-4 py-2 font-pixel text-sm"
             >
               💬 Messages is in the dock — click to reopen
@@ -759,19 +843,22 @@ export function MiniOS({
         {/* dock */}
         <div className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2">
           <div className="vx flex items-end gap-2 bg-card/85 px-2.5 pt-2 pb-1 backdrop-blur sm:gap-2.5">
-            <DockItem label="Messages" running onClick={() => setWin((w) => (w === 'min' ? 'open' : w))} tint="bg-gradient-to-br from-green-400 to-emerald-600">
+            <DockItem label="Messages" running onClick={showMessages} tint="bg-gradient-to-br from-green-400 to-emerald-600">
               <MessageCircle className="size-5" />
+            </DockItem>
+            <DockItem label="Browser" running={browserWin !== 'closed'} onClick={showBrowser} tint="bg-gradient-to-br from-sky-400 to-teal-600">
+              <Globe className="size-5" />
             </DockItem>
             <DockItem label="Projects" onClick={() => ask(QUESTIONS.projects)} tint="bg-gradient-to-br from-violet-400 to-violet-600">
               <FolderGit2 className="size-5" />
             </DockItem>
             {github && (
-              <DockItem label="GitHub" onClick={() => window.open(github.href, '_blank', 'noopener,noreferrer')} tint="bg-gradient-to-br from-neutral-700 to-neutral-900">
+              <DockItem label="GitHub" onClick={() => openLink(github.href)} tint="bg-gradient-to-br from-neutral-700 to-neutral-900">
                 <github.Icon className="size-5" />
               </DockItem>
             )}
             {linkedin && (
-              <DockItem label="LinkedIn" onClick={() => window.open(linkedin.href, '_blank', 'noopener,noreferrer')} tint="bg-gradient-to-br from-sky-500 to-blue-700">
+              <DockItem label="LinkedIn" onClick={() => openLink(linkedin.href)} tint="bg-gradient-to-br from-sky-500 to-blue-700">
                 <linkedin.Icon className="size-5" />
               </DockItem>
             )}
@@ -787,5 +874,6 @@ export function MiniOS({
       </div>
       </div>
     </motion.div>
+    </ChatActionsContext.Provider>
   )
 }
