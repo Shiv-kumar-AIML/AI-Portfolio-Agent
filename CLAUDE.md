@@ -1,8 +1,8 @@
 # Project rules
 
-Three services plus shared content: `frontend/` (React + Vite + shadcn/ui), `api/` (Express + TS
-gateway), `ai-service/` (FastAPI agent + RAG), and `content/` (the owner's data). See README.md for
-the architecture.
+Four services plus shared content: `frontend/` (React + Vite + shadcn/ui), `api/` (Express + TS
+gateway), `ai-service/` (FastAPI agent + RAG), `browser/` (Playwright Chromium for the mini-OS
+browser), and `content/` (the owner's data). See README.md for the architecture.
 
 ## Content
 - `content/profile.json` and `content/knowledge/**/*.md` are the single source of truth for facts
@@ -50,9 +50,28 @@ the architecture.
   phone width.
 - Model text is rendered only through `<Markdown>` (no raw HTML). External links open with
   `rel="noopener noreferrer"`.
+- Links that leave the site use `<ExternalLink>` (`src/components/ExternalLink.tsx`): inside the
+  mini-OS it opens them in the OS browser. Web pages there run in the live browser
+  (`src/lib/remoteBrowser.ts`); the previews used when it's unavailable are picked in
+  `src/lib/browserUrl.ts`.
 - Forms validate before submit, and a field's error clears as soon as the user types in it (see
   `ContactDialog.tsx`).
 - Browser storage access always goes through `src/lib/storage.ts` (guarded).
+
+## browser
+- Internal-only, like ai-service: no nginx route, no published port in production. Visitors reach it
+  through the api's WebSocket relay at `/api/browser` (`src/services/BrowserProxy.ts`: origin check,
+  per-IP limits), which adds `X-Internal-Service-Key`.
+- The protocol is `browser/src/protocol.ts` (zod-validated). Change it together with
+  `frontend/src/lib/remoteBrowser.ts`.
+- Top-level pages are limited to the allowlist (`browser/src/allowlist.ts`), and no request may reach a
+  private host. Never loosen either to "any URL": the browser runs on our server.
+- Live pages are restyled to the mini-OS theme in `browser/src/theme.ts`: GitHub through its Primer
+  variables, every other site by mapping each element's own colours onto the palette. The script runs
+  inside every page — keep it valid plain JS (a test checks it parses).
+  The frontend sends the theme tokens from `index.css` (`readTheme`); only hex colours are accepted.
+- Keep the Docker image tag (`browser/Dockerfile`) equal to the `playwright` version in `package.json`.
+- Checks: `npx tsc --noEmit`, `npm test`.
 
 ## Process
 - Follow the existing patterns in each service before adding new ones.

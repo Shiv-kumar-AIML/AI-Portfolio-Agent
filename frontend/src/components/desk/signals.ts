@@ -48,6 +48,22 @@ export function quadTransform(w: number, h: number, q: Quad): string {
     [0, h],
   ]
   const dst = [q.tl, q.tr, q.br, q.bl]
+
+  // A mild keystone gets a plain 2D affine fit instead: text under a perspective matrix3d is
+  // rasterised as a texture (Firefox drops and smears glyphs), while a 2D matrix stays crisp.
+  const a2 = (q.tr.x - q.tl.x + q.br.x - q.bl.x) / (2 * w)
+  const b2 = (q.tr.y - q.tl.y + q.br.y - q.bl.y) / (2 * w)
+  const c2 = (q.bl.x - q.tl.x + q.br.x - q.tr.x) / (2 * h)
+  const d2 = (q.bl.y - q.tl.y + q.br.y - q.tr.y) / (2 * h)
+  const e2 = (q.tl.x + q.tr.x + q.br.x + q.bl.x) / 4 - (a2 * w + c2 * h) / 2
+  const f2 = (q.tl.y + q.tr.y + q.br.y + q.bl.y) / 4 - (b2 * w + d2 * h) / 2
+  const drift = Math.max(
+    ...src.map(([x, y], i) => Math.hypot(a2 * x + c2 * y + e2 - dst[i].x, b2 * x + d2 * y + f2 - dst[i].y)),
+  )
+  if (drift <= Math.max(2, 0.012 * Math.hypot(q.tr.x - q.tl.x, q.tr.y - q.tl.y))) {
+    return `matrix(${a2},${b2},${c2},${d2},${e2},${f2})`
+  }
+
   // Solve for H (8 unknowns): x' = (a x + b y + c) / (g x + h y + 1), y' = (d x + e y + f) / (g x + h y + 1)
   const A: number[][] = []
   const B: number[] = []

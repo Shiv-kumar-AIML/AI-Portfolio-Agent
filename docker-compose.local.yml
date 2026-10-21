@@ -4,12 +4,13 @@
 #   api        http://localhost:3060   tsx watch (bind-mounted); Swagger at /api-docs
 #   ai-service http://localhost:3063   baked into its image — rebuild after changing it
 #                                      (docker compose -f docker-compose.local.yml up --build ai-service)
+#   browser    http://localhost:3064   live Chromium for the mini-OS browser; tsx watch (bind-mounted)
 #   postgres   localhost:5434
 #
 # Host ports are 306x on purpose: ai-tradesman already uses 3050-3053 on this machine.
 #
 # Each service reads its own .env (copy the .env.example next to it). INTERNAL_SERVICE_KEY must be
-# the same in api/.env and ai-service/.env.
+# the same in api/.env, ai-service/.env and browser/.env.
 name: portfolio-local
 
 services:
@@ -50,6 +51,7 @@ services:
       # Inside the Docker network services are reached by name, not localhost.
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/portfolio
       - AI_SERVICE_URL=http://ai-service:8000
+      - BROWSER_SERVICE_URL=ws://browser:8090
       - CONTENT_DIR=/content
       - ALLOWED_ORIGINS=http://localhost:3061,http://localhost:5173
       - ENABLE_API_DOCS=true
@@ -84,6 +86,30 @@ services:
       - CONTENT_DIR=/content
     volumes:
       # Content is mounted (not baked) so edits only need POST /api/admin/reindex, not a rebuild.
+      - ./content:/content:ro
+    networks: [portfolio-local]
+
+  browser:
+    build:
+      context: ./browser
+      target: dev # installed deps only; source is bind-mounted below
+    container_name: portfolio_browser_local
+    restart: unless-stopped
+    init: true # reaps Chromium's child processes
+    shm_size: 1gb # Chromium needs more shared memory than Docker's 64 MB default
+    ports:
+      # loopback only, for /health
+      - "127.0.0.1:${BROWSER_PORT:-3064}:8090"
+    env_file:
+      - path: ./browser/.env
+        required: false
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8090
+      - CONTENT_DIR=/content
+    volumes:
+      - ./browser:/app
+      - /app/node_modules
       - ./content:/content:ro
     networks: [portfolio-local]
 

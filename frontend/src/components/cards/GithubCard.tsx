@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react'
 import { GithubIcon } from '@/components/BrandIcons'
+import { ExternalLink } from '@/components/ExternalLink'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface GithubData {
@@ -42,7 +43,7 @@ export function GithubCard({ data }: { data: GithubData }) {
   return (
     <Card>
       <CardContent className="space-y-4">
-        <a href={data.profileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80">
+        <ExternalLink href={data.profileUrl} className="flex items-center gap-3 hover:opacity-80">
           {data.avatarUrl ? (
             <img src={data.avatarUrl} alt="" className="size-10 rounded-full border" />
           ) : (
@@ -52,7 +53,7 @@ export function GithubCard({ data }: { data: GithubData }) {
             <div className="font-heading font-semibold">{data.name ?? data.username}</div>
             <div className="font-mono text-xs text-muted-foreground">@{data.username}</div>
           </div>
-        </a>
+        </ExternalLink>
         <div className="grid grid-cols-3 gap-2">
           {stats.map((s) => (
             <div key={s.label} className="rounded-lg border bg-background/60 px-3 py-2 text-center">
@@ -87,10 +88,8 @@ export function GithubCard({ data }: { data: GithubData }) {
           <ul className="divide-y rounded-lg border">
             {data.recentRepos.map((repo) => (
               <li key={repo.name}>
-                <a
+                <ExternalLink
                   href={repo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-start justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-muted/50"
                 >
                   <div className="min-w-0">
@@ -106,7 +105,7 @@ export function GithubCard({ data }: { data: GithubData }) {
                     </span>
                     <span>{timeAgo(repo.updatedAt)}</span>
                   </div>
-                </a>
+                </ExternalLink>
               </li>
             ))}
           </ul>

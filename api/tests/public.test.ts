@@ -46,6 +46,15 @@ describe('GET /api/profile and /api/projects', () => {
   });
 });
 
+describe('GET /api/about', () => {
+  it('serves bio, experience, education and skills', async () => {
+    const res = await request(app).get('/api/about');
+    expect(res.status).toBe(200);
+    expect(Object.keys(res.body).sort()).toEqual(['bio', 'education', 'experience', 'skills']);
+    expect(Array.isArray(res.body.experience)).toBe(true);
+  });
+});
+
 describe('POST /api/contact', () => {
   const valid = { name: 'Ana', email: 'ana@example.com', message: 'Would love to chat about a role.' };
 

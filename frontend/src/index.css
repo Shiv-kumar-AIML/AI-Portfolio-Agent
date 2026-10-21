@@ -246,6 +246,9 @@
 }
 @keyframes caret-blink { to { visibility: hidden; } }
 
+/* the mini-OS browser's page-loading bar */
+@keyframes loading-bar { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
 @media (prefers-reduced-motion: reduce) {
   .avatar-float, .sky-glow, .streaming-caret > div > :last-child::after { animation: none; }
 }

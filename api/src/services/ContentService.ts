@@ -46,3 +46,14 @@ export const getPublicProfile = () => {
 };
 
 export const getProjects = () => getProfile().projects || [];
+
+/** The career page (the ShivOS browser's LinkedIn view): bio, jobs, education and skills. */
+export const getAbout = () => {
+  const p = getProfile();
+  return {
+    bio: p.bio || '',
+    experience: p.experience || [],
+    education: p.education || [],
+    skills: p.skills || [],
+  };
+};

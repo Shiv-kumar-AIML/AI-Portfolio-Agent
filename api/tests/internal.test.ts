@@ -144,6 +144,17 @@ describe('GET /internal/github/repos/:name', () => {
     expect(res.body.available).toEqual(['a', 'b', 'c']);
   });
 
+  it('is also served publicly (for the mini-OS browser), without the list of other repos', async () => {
+    fetchMock.mockImplementation(async (url: string) => routeGithub(url));
+    const ok = await request(app).get('/api/github/repos/a');
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ name: 'a', readme: '# Repo A\nHybrid RAG.' });
+    const missing = await request(app).get('/api/github/repos/forked');
+    expect(missing.status).toBe(404);
+    expect(missing.body.available).toBeUndefined();
+    expect((await request(app).get('/api/github/repos/a%2F..%2Fsecrets')).status).toBe(400);
+  });
+
   it('rejects names that are not valid repo names', async () => {
     const res = await request(app).get('/internal/github/repos/a%2F..%2Fsecrets').set(INTERNAL_KEY);
     expect(res.status).toBe(400);

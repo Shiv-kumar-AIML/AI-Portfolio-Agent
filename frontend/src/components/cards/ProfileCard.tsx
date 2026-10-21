@@ -1,5 +1,6 @@
 import { MapPin, Sparkles } from 'lucide-react'
 import { socialLinks } from '@/components/BrandIcons'
+import { ExternalLink } from '@/components/ExternalLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -62,15 +63,13 @@ export function ProfileCard({ data }: { data: ProfileData }) {
         {links.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {links.map(({ key, label, href, Icon }) => (
-              <a
+              <ExternalLink
                 key={key}
                 href={href}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors hover:bg-muted sm:text-sm"
               >
                 <Icon className="size-3.5" /> {label}
-              </a>
+              </ExternalLink>
             ))}
           </div>
         )}

@@ -8,7 +8,8 @@ import tailwindcss from '@tailwindcss/vite'
 const apiTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:5010'
 // Tunnels used to share the site for a demo (Vite rejects unknown Host headers otherwise).
 const tunnelHosts = ['.ngrok-free.dev', '.ngrok-free.app', '.ngrok.app', '.ngrok.dev']
-const apiProxy = { '/api': { target: apiTarget, changeOrigin: true } }
+// ws: the mini-OS live browser is a WebSocket at /api/browser
+const apiProxy = { '/api': { target: apiTarget, changeOrigin: true, ws: true } }
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],

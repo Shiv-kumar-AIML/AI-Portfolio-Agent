@@ -5,6 +5,7 @@ import type { Project, ToolCard } from '@/types'
 import { ContactCard } from './ContactCard'
 import { ExperienceCard } from './ExperienceCard'
 import { GithubCard } from './GithubCard'
+import { OpenLinkCard } from './OpenLinkCard'
 import { type ProfileData, ProfileCard } from './ProfileCard'
 import { ProjectDetailCard } from './ProjectDetailCard'
 import { ProjectsCard } from './ProjectsCard'
@@ -45,6 +46,8 @@ function renderCard(card: ToolCard) {
       return <GithubCard data={data} />
     case 'message_sent':
       return <MessageSentCard data={data} />
+    case 'open_link':
+      return typeof data?.url === 'string' ? <OpenLinkCard data={data} /> : null
     default:
       return null // a card type this frontend doesn't know yet
   }

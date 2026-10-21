@@ -10,7 +10,14 @@ const swaggerSpec = swaggerJsdoc({
         'Public API gateway for the AI portfolio: profile, projects, GitHub, chat (SSE) and contact.',
     },
   },
-  apis: ['./src/routes/*.ts', './src/index.ts', './dist/routes/*.js', './dist/index.js'],
+  apis: [
+    './src/routes/*.ts',
+    './src/index.ts',
+    './src/services/BrowserProxy.ts',
+    './dist/routes/*.js',
+    './dist/index.js',
+    './dist/services/BrowserProxy.js',
+  ],
 });
 
 export default swaggerSpec;

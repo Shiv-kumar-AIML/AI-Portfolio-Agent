@@ -5,6 +5,7 @@ from app.tools.contact_tools import SendMessageTool
 from app.tools.context import ToolContext
 from app.tools.github_tools import GetGithubActivityTool
 from app.tools.knowledge_tools import SearchKnowledgeTool
+from app.tools.link_tools import OpenLinkTool
 from app.tools.profile_tools import (
     GetContactTool,
     GetExperienceTool,
@@ -26,6 +27,7 @@ TOOL_CLASSES: tuple[type[BaseTool], ...] = (
     GetContactTool,
     GetGithubActivityTool,
     GetRepoDetailsTool,
+    OpenLinkTool,
     SendMessageTool,
 )
 

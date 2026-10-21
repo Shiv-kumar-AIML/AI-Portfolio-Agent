@@ -34,6 +34,7 @@ frames by `id`.
 ## Cards
 
 `card` is one of `profile`, `projects`, `project`, `skills`, `experience`, `resume`, `contact`,
-`github`, `message_sent`. The frontend ignores card types it doesn't know. To add one, add a
+`github`, `message_sent`, `open_link` (`data: {url}` — the mini-OS opens it in a browser tab once
+the answer is delivered). The frontend ignores card types it doesn't know. To add one, add a
 `ui_card` to a tool in `app/tools/`, then add a component and a `case` in
 `frontend/src/components/cards/index.tsx`.

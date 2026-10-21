@@ -8,6 +8,7 @@ import chatRoutes from './routes/chat';
 import contactRoutes from './routes/contact';
 import internalRoutes from './routes/internal';
 import profileRoutes from './routes/profile';
+import { attachBrowserProxy } from './services/BrowserProxy';
 import swaggerSpec from './swagger';
 
 const app = express();
@@ -85,9 +86,10 @@ if (require.main === module) {
   process.on('unhandledRejection', (reason) => {
     console.error('Unhandled promise rejection (process kept running):', reason);
   });
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Portfolio API listening on port ${port}`);
   });
+  attachBrowserProxy(server, allowedOrigins);
 }
 
 export default app;

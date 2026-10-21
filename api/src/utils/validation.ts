@@ -38,6 +38,11 @@ export const internalMessageSchema = contactMessageSchema.extend({
   sessionId: z.string().max(64).nullable().optional(),
 });
 
+// GitHub repo names: letters, digits, '.', '-', '_' (max 100).
+export const repoNameSchema = z.object({
+  name: z.string().regex(/^[A-Za-z0-9._-]{1,100}$/, 'Invalid repository name'),
+});
+
 export const messageStatusSchema = z.object({
   status: z.enum(['NEW', 'READ', 'ARCHIVED']),
 });
