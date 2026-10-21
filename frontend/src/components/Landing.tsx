@@ -118,7 +118,7 @@ export function Landing({
           className="mt-6 w-full max-w-xl sm:mt-8"
         >
           <Fade away={away}>
-            <ChatInput size="lg" onSend={onAsk} placeholder="Ask me anything…" />
+            <ChatInput size="lg" onSend={onAsk} placeholder="Know about me …" />
           </Fade>
         </motion.div>
         <div aria-hidden className="flex-1" />

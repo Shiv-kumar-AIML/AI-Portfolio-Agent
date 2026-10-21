@@ -5,11 +5,11 @@
   "watermark": "Shivam",
   "title": "AI / ML Engineer",
   "tagline": "I build LLM agents, RAG systems and ML pipelines that ship to production.",
-  "location": "Dehradun, India",
+  "location": "Chandigarh, India",
   "timezone": "Asia/Kolkata",
   "availability": "Open to full-time AI/ML Engineer roles and freelance projects",
   "avatar": "/avatar.svg",
-  "email": "you@example.com",
+  "email": "shivam020930@gmail.com",
   "bio": "AI/ML engineer focused on applied LLM systems: tool-using agents, retrieval-augmented generation, evaluation, and the backend plumbing that makes them reliable. I enjoy taking a model from a notebook to a monitored, containerised service.",
   "highlights": [
     "Built a production multi-tool LLM agent used daily by paying customers",
